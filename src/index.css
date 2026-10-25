@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Baloo 2', 'Fredoka', ui-rounded, system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* Comic canvas screen shake on bomb explosions */
+.shake {
+  animation: comicShake 0.45s ease-in-out;
+}
+
+@keyframes comicShake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-8px, 4px) rotate(-1deg); }
+  40% { transform: translate(8px, -6px) rotate(1.5deg); }
+  60% { transform: translate(-6px, 3px) rotate(-0.5deg); }
+  80% { transform: translate(4px, -3px) rotate(0.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Custom bouncy animations */
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: floatBob 2s ease-in-out infinite;
+}
