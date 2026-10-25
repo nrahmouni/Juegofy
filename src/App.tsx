@@ -1,59 +1,126 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PlayerConfig, ThemeId, PlayerResult, GameModeId, AgeGroup } from './types/game';
-import { THEMES, PLAYER_COLORS, DEFAULT_AVATARS } from './data/themes';
+import { THEMES, PLAYER_COLORS } from './data/themes';
+import { MAX_GAME_LEVEL } from './data/learningData';
 import { PlayerSetup } from './components/PlayerSetup';
 import { GameCanvas } from './components/GameCanvas';
 import { TurnResultModal } from './components/TurnResultModal';
-import { InteractiveChallengeModal } from './components/InteractiveChallengeModal';
 import { PodiumScreen } from './components/PodiumScreen';
 import { sounds } from './audio/soundManager';
 
-const STORAGE_KEY = 'camino_bombastico_players_v1';
+const STORAGE_KEY = 'mundo_magico_players_v2';
+const LEARNED_WORDS_KEY = 'mundo_magico_learned_words_v2';
+const MISSED_WORDS_KEY = 'mundo_magico_missed_words_v2';
 
 export default function App() {
-  // Number of players
-  const [numPlayers, setNumPlayers] = useState<number>(2);
-
-  // Active game mode (out of the 6 educational & arcade games)
-  const [gameMode, setGameMode] = useState<GameModeId>('classic_bomb');
-
-  // Age group target (preschool 3-5 vs kids 6-8)
-  const [ageGroup, setAgeGroup] = useState<AgeGroup>('preschool');
-
-  // Initial Player configs with default cute names
+  // Active players list (defaults to Faysal and Meriem for instant turn-based play)
   const [players, setPlayers] = useState<PlayerConfig[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 4) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
       }
     } catch {}
 
-    const defaultNames = ['Lucas', 'Sofia', 'Mateo', 'Emma'];
-    return [0, 1, 2, 3].map((i) => ({
-      id: i,
-      name: defaultNames[i],
-      photoUrl: null,
-      fallbackEmoji: DEFAULT_AVATARS[i % DEFAULT_AVATARS.length].emoji,
-      sticker: 'none',
-      color: PLAYER_COLORS[i % PLAYER_COLORS.length],
-    }));
+    return [
+      {
+        id: 1,
+        name: 'FAYSAL',
+        photoUrl: null,
+        fallbackEmoji: '🦁',
+        sticker: 'crown',
+        color: PLAYER_COLORS[0],
+        coins: 100,
+      },
+      {
+        id: 2,
+        name: 'MERIEM',
+        photoUrl: null,
+        fallbackEmoji: '🦄',
+        sticker: 'star',
+        color: PLAYER_COLORS[1],
+        coins: 100,
+      },
+    ];
   });
 
-  // Save players to local storage whenever they change
+  // Track learned word IDs so learned words do not repeat unless reset
+  const [learnedWordIds, setLearnedWordIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(LEARNED_WORDS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+
+  // Track missed word IDs for Smart Adaptive Learning reinforcement
+  const [missedWordIds, setMissedWordIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(MISSED_WORDS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+
+  const numPlayers = players.length;
+
+  // Active game mode
+  const [gameMode, setGameMode] = useState<GameModeId>('monster_feeder');
+
+  // Age group target (preschool 3-5 vs kids 6-9)
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>('preschool');
+
+  // Save players & smart learning progress to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
     } catch {}
   }, [players]);
 
-  // Theme & Difficulty & 5-Level Campaign
+  useEffect(() => {
+    try {
+      localStorage.setItem(LEARNED_WORDS_KEY, JSON.stringify(learnedWordIds));
+    } catch {}
+  }, [learnedWordIds]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MISSED_WORDS_KEY, JSON.stringify(missedWordIds));
+    } catch {}
+  }, [missedWordIds]);
+
+  const handleMarkWordLearned = useCallback((wordId: string) => {
+    setLearnedWordIds((prev) => (prev.includes(wordId) ? prev : [...prev, wordId]));
+    setMissedWordIds((prev) => prev.filter((id) => id !== wordId));
+  }, []);
+
+  const handleMarkWordMissed = useCallback((wordId: string) => {
+    setMissedWordIds((prev) => (prev.includes(wordId) ? prev : [...prev, wordId]));
+  }, []);
+
+  // Theme & Difficulty & 8-Level Campaign
   const [selectedTheme, setSelectedTheme] = useState<ThemeId>('candy');
-  const [difficulty, setDifficulty] = useState<number>(1); // Normal by default
-  const [selectedLevel, setSelectedLevel] = useState<number>(1); // 1 to 5
+  const [difficulty, setDifficulty] = useState<number>(1);
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+
+  const handleResetProgress = useCallback(() => {
+    setLearnedWordIds([]);
+    setMissedWordIds([]);
+    setSelectedLevel(1);
+    try {
+      localStorage.removeItem(LEARNED_WORDS_KEY);
+      localStorage.removeItem(MISSED_WORDS_KEY);
+    } catch {}
+  }, []);
 
   // Game Flow State
   const [gameState, setGameState] = useState<'SETUP' | 'PLAYING' | 'PODIUM'>('SETUP');
@@ -61,16 +128,10 @@ export default function App() {
   const [turnResults, setTurnResults] = useState<PlayerResult[]>([]);
   const [activeTurnResult, setActiveTurnResult] = useState<PlayerResult | null>(null);
 
-  // Interactive Mini Challenge Modal State
-  const [isChallengeActive, setIsChallengeActive] = useState<boolean>(false);
-  const [challengeReward, setChallengeReward] = useState<{ stars: number; shield: boolean } | null>(null);
-
   // Audio & Fullscreen
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isMusicEnabled, setIsMusicEnabled] = useState<boolean>(true);
 
-  // Fullscreen toggle handler
   const handleToggleFullscreen = useCallback(() => {
     const doc = document as any;
     const docEl = document.documentElement as any;
@@ -86,32 +147,20 @@ export default function App() {
         docEl.requestFullscreen().catch(() => {});
       } else if (docEl.webkitRequestFullscreen) {
         docEl.webkitRequestFullscreen();
-      } else if (docEl.msRequestFullscreen) {
-        docEl.msRequestFullscreen();
       }
     } else {
       if (doc.exitFullscreen) {
         doc.exitFullscreen().catch(() => {});
       } else if (doc.webkitExitFullscreen) {
         doc.webkitExitFullscreen();
-      } else if (doc.msExitFullscreen) {
-        doc.msExitFullscreen();
       }
     }
   }, []);
 
-  // Listen for fullscreen change
   useEffect(() => {
     const onFsChange = () => {
       const doc = document as any;
-      setIsFullscreen(
-        Boolean(
-          doc.fullscreenElement ||
-            doc.webkitFullscreenElement ||
-            doc.mozFullScreenElement ||
-            doc.msFullscreenElement
-        )
-      );
+      setIsFullscreen(Boolean(doc.fullscreenElement || doc.webkitFullscreenElement));
     };
 
     document.addEventListener('fullscreenchange', onFsChange);
@@ -122,15 +171,9 @@ export default function App() {
     };
   }, []);
 
-  // Audio Toggles
   const handleToggleMute = () => {
     const muted = sounds.toggleMute();
     setIsMuted(muted);
-  };
-
-  const handleToggleMusic = () => {
-    const music = sounds.toggleMusic();
-    setIsMusicEnabled(music);
   };
 
   // Start Game
@@ -147,7 +190,6 @@ export default function App() {
     const earnedCoins = (result.stars || 0) * 10 + (result.wordsLearned || 0) * 15 + 25;
     const updatedResult = { ...result, coinsEarned: earnedCoins };
 
-    // Add coins to active player profile
     setPlayers((prev) =>
       prev.map((p) =>
         p.id === result.playerId ? { ...p, coins: (p.coins ?? 100) + earnedCoins } : p
@@ -157,7 +199,7 @@ export default function App() {
     setActiveTurnResult(updatedResult);
   };
 
-  // Advance to next player or to podium
+  // Advance to next player or to podium (and advance campaign level up to 8 after all players complete the round)
   const handleNextTurnOrPodium = () => {
     if (!activeTurnResult) return;
     const updated = [...turnResults, activeTurnResult];
@@ -167,20 +209,16 @@ export default function App() {
     if (currentTurn + 1 < numPlayers) {
       setCurrentTurn((prev) => prev + 1);
     } else {
+      if (updated.some((r) => r.ok) && selectedLevel < MAX_GAME_LEVEL) {
+        setSelectedLevel((prev) => Math.min(MAX_GAME_LEVEL, prev + 1));
+      }
       setGameState('PODIUM');
       sounds.stopBGM();
     }
   };
 
-  // Retry the current player's turn
   const handleRetryTurn = () => {
     setActiveTurnResult(null);
-  };
-
-  // Complete interactive challenge
-  const handleChallengeComplete = (bonusStars: number, hasShield: boolean) => {
-    setIsChallengeActive(false);
-    setChallengeReward({ stars: bonusStars, shield: hasShield });
   };
 
   const currentThemeObj = THEMES[selectedTheme];
@@ -188,115 +226,98 @@ export default function App() {
   const nextPlayer = players[currentTurn + 1];
 
   return (
-    <div
-      className={`w-full font-sans antialiased text-slate-800 transition-colors duration-500 ${
-        gameState === 'PLAYING'
-          ? 'h-screen h-[100dvh] w-screen w-[100dvw] overflow-hidden flex flex-col items-center justify-center p-0 m-0'
-          : 'min-h-screen overflow-x-hidden flex flex-col items-center justify-center p-2 sm:p-4'
-      }`}
-      style={{
-        background: `linear-gradient(135deg, ${currentThemeObj.bgColor1}, ${currentThemeObj.bgColor2})`,
-      }}
-    >
-      {/* 1. SETUP SCREEN */}
-      {gameState === 'SETUP' && (
-        <PlayerSetup
-          players={players}
-          setPlayers={setPlayers}
-          numPlayers={numPlayers}
-          setNumPlayers={setNumPlayers}
-          selectedTheme={selectedTheme}
-          setSelectedTheme={setSelectedTheme}
-          difficulty={difficulty}
-          setDifficulty={setDifficulty}
-          selectedLevel={selectedLevel}
-          setSelectedLevel={setSelectedLevel}
-          gameMode={gameMode}
-          setGameMode={setGameMode}
-          ageGroup={ageGroup}
-          setAgeGroup={setAgeGroup}
-          onStartGame={handleStartGame}
-          onToggleFullscreen={handleToggleFullscreen}
-          isFullscreen={isFullscreen}
-          isMuted={isMuted}
-          onToggleMute={handleToggleMute}
-          isMusicEnabled={isMusicEnabled}
-          onToggleMusic={handleToggleMusic}
-        />
-      )}
+    <div className="relative w-full h-screen h-[100dvh] overflow-hidden font-sans antialiased text-slate-900 p-0">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center overflow-hidden">
+        {/* 1. SETUP SCREEN */}
+        {gameState === 'SETUP' && (
+          <PlayerSetup
+            players={players}
+            setPlayers={setPlayers}
+            difficulty={difficulty}
+            setDifficulty={setDifficulty}
+            selectedLevel={selectedLevel}
+            setSelectedLevel={setSelectedLevel}
+            learnedWordIds={learnedWordIds}
+            missedWordIds={missedWordIds}
+            onResetProgress={handleResetProgress}
+            gameMode={gameMode}
+            setGameMode={setGameMode}
+            ageGroup={ageGroup}
+            setAgeGroup={setAgeGroup}
+            onStartGame={handleStartGame}
+            onToggleFullscreen={handleToggleFullscreen}
+            isFullscreen={isFullscreen}
+            isMuted={isMuted}
+            onToggleMute={handleToggleMute}
+            selectedTheme={selectedTheme}
+            setSelectedTheme={setSelectedTheme}
+          />
+        )}
 
-      {/* 2. PLAYING CANVAS */}
-      {gameState === 'PLAYING' && (
-        <GameCanvas
-          key={`turn-${currentTurn}-${activePlayer.id}-${gameMode}-lvl${selectedLevel}`}
-          player={activePlayer}
-          turnIndex={currentTurn}
-          totalPlayers={numPlayers}
-          theme={currentThemeObj}
-          difficulty={difficulty}
-          selectedLevel={selectedLevel}
-          gameMode={gameMode}
-          ageGroup={ageGroup}
-          onFinishTurn={handleFinishTurn}
-          onTriggerChallenge={() => setIsChallengeActive(true)}
-          challengeReward={challengeReward}
-          clearChallengeReward={() => setChallengeReward(null)}
-          onExitGame={() => {
-            sounds.stopBGM();
-            setGameState('SETUP');
-          }}
-          onToggleFullscreen={handleToggleFullscreen}
-          isFullscreen={isFullscreen}
-          isMuted={isMuted}
-          onToggleMute={handleToggleMute}
-        />
-      )}
+        {/* 2. PLAYING CANVAS */}
+        {gameState === 'PLAYING' && (
+          <GameCanvas
+            key={`turn-${currentTurn}-${activePlayer.id}-${gameMode}-lvl${selectedLevel}`}
+            player={activePlayer}
+            turnIndex={currentTurn}
+            totalPlayers={numPlayers}
+            theme={currentThemeObj}
+            difficulty={difficulty}
+            selectedLevel={selectedLevel}
+            gameMode={gameMode}
+            ageGroup={ageGroup}
+            learnedWordIds={learnedWordIds}
+            missedWordIds={missedWordIds}
+            onMarkWordLearned={handleMarkWordLearned}
+            onMarkWordMissed={handleMarkWordMissed}
+            onFinishTurn={handleFinishTurn}
+            onExitGame={() => {
+              sounds.stopBGM();
+              setGameState('SETUP');
+            }}
+            onToggleFullscreen={handleToggleFullscreen}
+            isFullscreen={isFullscreen}
+            isMuted={isMuted}
+            onToggleMute={handleToggleMute}
+          />
+        )}
 
-      {/* 3. TURN RESULT MODAL */}
-      {activeTurnResult && (
-        <TurnResultModal
-          result={activeTurnResult}
-          isLastPlayer={currentTurn === numPlayers - 1}
-          nextPlayerName={nextPlayer?.name}
-          nextPlayerEmoji={nextPlayer?.fallbackEmoji}
-          onNext={handleNextTurnOrPodium}
-          onRetryTurn={handleRetryTurn}
-        />
-      )}
+        {/* 3. TURN RESULT MODAL */}
+        {activeTurnResult && (
+          <TurnResultModal
+            result={activeTurnResult}
+            isLastPlayer={currentTurn === numPlayers - 1}
+            nextPlayerName={nextPlayer?.name}
+            nextPlayerEmoji={nextPlayer?.fallbackEmoji}
+            onNext={handleNextTurnOrPodium}
+            onRetryTurn={handleRetryTurn}
+          />
+        )}
 
-      {/* 4. INTERACTIVE CHALLENGE MODAL */}
-      {isChallengeActive && (
-        <InteractiveChallengeModal
-          playerName={activePlayer.name}
-          playerPhoto={activePlayer.photoUrl}
-          playerEmoji={activePlayer.fallbackEmoji}
-          onComplete={handleChallengeComplete}
-        />
-      )}
-
-      {/* 5. PODIUM SCREEN */}
-      {gameState === 'PODIUM' && (
-        <PodiumScreen
-          results={turnResults}
-          onPlayAgainSame={() => {
-            setCurrentTurn(0);
-            setTurnResults([]);
-            setActiveTurnResult(null);
-            setGameState('PLAYING');
-            sounds.startBGM(selectedTheme);
-          }}
-          onPlayAgainNew={() => {
-            setCurrentTurn(0);
-            setTurnResults([]);
-            setActiveTurnResult(null);
-            setGameState('PLAYING');
-            sounds.startBGM(selectedTheme);
-          }}
-          onGoToMenu={() => {
-            setGameState('SETUP');
-          }}
-        />
-      )}
+        {/* 4. PODIUM SCREEN */}
+        {gameState === 'PODIUM' && (
+          <PodiumScreen
+            results={turnResults}
+            onPlayAgainSame={() => {
+              setCurrentTurn(0);
+              setTurnResults([]);
+              setActiveTurnResult(null);
+              setGameState('PLAYING');
+              sounds.startBGM(selectedTheme);
+            }}
+            onPlayAgainNew={() => {
+              setCurrentTurn(0);
+              setTurnResults([]);
+              setActiveTurnResult(null);
+              setGameState('PLAYING');
+              sounds.startBGM(selectedTheme);
+            }}
+            onGoToMenu={() => {
+              setGameState('SETUP');
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

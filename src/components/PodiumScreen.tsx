@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, RefreshCw, Sparkles, Settings } from 'lucide-react';
+import { Trophy, RefreshCw, Sparkles, Settings, Star, BookOpen, Target } from 'lucide-react';
 import { PlayerResult } from '../types/game';
 import { sounds } from '../audio/soundManager';
 
@@ -23,150 +23,135 @@ export const PodiumScreen: React.FC<Props> = ({
 
   useEffect(() => {
     sounds.sfxWin();
-    // Confetti shower
-    const end = Date.now() + 2.5 * 1000;
-    const colors = ['#ff4f8b', '#ffd23f', '#2ee6a6', '#5db8ff', '#f97316'];
+    // Continuous confetti for 3 seconds
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
-    (function frame() {
-      confetti({
-        particleCount: 4,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.6 },
-        colors,
-      });
-      confetti({
-        particleCount: 4,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.6 },
-        colors,
-      });
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
+    const interval: any = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
       }
-    })();
+
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+    }, 250);
+
+    return () => clearInterval(interval);
   }, []);
 
   const medals = ['🥇', '🥈', '🥉', '🏅'];
 
   return (
-    <div className="w-full max-w-md mx-auto p-4 flex flex-col items-center select-none animate-in fade-in zoom-in-95 duration-300">
-      {/* Trophy Header */}
-      <div className="text-center mb-4">
-        <div className="inline-block p-4 bg-amber-400 rounded-full shadow-lg border-4 border-yellow-200 mb-2 animate-bounce">
-          <Trophy className="w-12 h-12 text-amber-950 fill-amber-300" />
+    <div className="w-full max-w-lg mx-auto p-4 flex flex-col items-center select-none animate-in fade-in zoom-in-95 duration-500 h-screen overflow-hidden">
+      
+      {/* 🏆 Grand Trophy Header */}
+      <div className="text-center mb-4 relative shrink-0">
+        <div className="absolute inset-0 bg-yellow-400/20 blur-[60px] rounded-full animate-pulse-soft" />
+        <div className="inline-block p-4 sm:p-6 bg-gradient-to-b from-yellow-300 to-amber-500 rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_50px_rgba(245,158,11,0.4)] border-b-[8px] sm:border-b-[12px] border-amber-700 mb-2 animate-float relative z-10">
+          <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white fill-white/20" />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-pink-600 tracking-tight">
-          {sorted.length > 1 ? `¡Gana ${winner.playerName}!` : '¡Gran Puntuación!'}
+        <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tighter drop-shadow-xl uppercase">
+          {sorted.length > 1 ? `¡GANA ${winner.playerName.toUpperCase()}!` : '¡PUNTUACIÓN ÉPICA!'}
         </h1>
-        <p className="text-xs font-bold text-slate-600">
-          ¡Sois unos auténticos campeones del camino! 🌟
+        <p className="text-white/60 font-black uppercase tracking-[0.2em] text-[8px] sm:text-[10px]">
+          ¡SOIS UNOS CAMPEONES! 🌟
         </p>
       </div>
 
-      {/* Podium Cards */}
-      <div className="w-full bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-xl border-2 border-pink-200 mb-4 flex flex-col gap-2.5">
+      {/* 📊 Ranking List */}
+      <div className="w-full flex-1 flex flex-col gap-2 sm:gap-3 overflow-y-auto px-2 pb-24 no-scrollbar">
         {sorted.map((res, index) => {
           const isFirst = index === 0;
           return (
             <div
               key={`podium-res-${res.playerId}-${index}`}
-              className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition ${
-                isFirst
-                  ? 'bg-amber-100/70 border-amber-400 shadow-sm'
-                  : 'bg-slate-50 border-slate-200'
+              className={`relative flex items-center gap-3 p-3 sm:p-4 rounded-[1.5rem] sm:rounded-[2.5rem] border-b-4 sm:border-b-[8px] transition-all bg-white shadow-xl ${
+                isFirst ? 'scale-105 z-20 border-amber-400' : 'opacity-90 border-slate-200'
               }`}
             >
-              {/* Medal */}
-              <div className="text-2xl shrink-0 w-8 text-center">{medals[index]}</div>
+              {/* Rank Badge */}
+              <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-sm sm:text-lg shadow-lg border-2 border-indigo-400">
+                {index + 1}
+              </div>
 
               {/* Avatar Photo */}
               <div
-                className="w-14 h-14 rounded-full border-3 overflow-hidden shadow-xs shrink-0 flex items-center justify-center bg-white"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 sm:border-4 overflow-hidden shadow-inner shrink-0 flex items-center justify-center bg-slate-50 ml-4 sm:ml-6"
                 style={{ borderColor: res.color }}
               >
                 {res.photoUrl ? (
-                  <img
-                    src={res.photoUrl}
-                    alt={res.playerName}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={res.photoUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl">{res.fallbackEmoji}</span>
+                  <span className="text-2xl sm:text-3xl">{res.fallbackEmoji}</span>
                 )}
               </div>
 
               {/* Player Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black text-base text-slate-800 truncate">
+                  <span className="font-black text-sm sm:text-lg text-slate-800 truncate uppercase tracking-tight">
                     {res.playerName}
                   </span>
                   {res.ok && (
-                    <span className="text-[10px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded-full">
-                      ¡Meta! 🏁
+                    <span className="text-[6px] sm:text-[8px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-full uppercase">
+                      FIN 🏁
                     </span>
                   )}
                 </div>
-                <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
-                  <span>⭐ {res.stars}</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-1 text-amber-500 font-black text-[10px] sm:text-xs">
+                    <Star className="w-3 h-3 fill-amber-400" /> {res.stars}
+                  </div>
                   {res.wordsLearned !== undefined && res.wordsLearned > 0 && (
-                    <>
-                      <span>·</span>
-                      <span className="text-emerald-700 font-bold">📚 {res.wordsLearned} retos</span>
-                    </>
+                    <div className="flex items-center gap-1 text-emerald-600 font-black text-[10px] sm:text-xs">
+                      <BookOpen className="w-3 h-3" /> {res.wordsLearned}
+                    </div>
                   )}
-                  <span>·</span>
-                  <span>{Math.round(res.progress * 100)}%</span>
                 </div>
               </div>
 
               {/* Final Score */}
-              <div className="text-right shrink-0">
-                <div className="font-black text-xl text-pink-600">{res.pts}</div>
-                <div className="text-[10px] font-bold text-slate-400">puntos</div>
+              <div className="text-right pr-1">
+                <div className="font-black text-lg sm:text-2xl text-pink-600 leading-none">{res.pts}</div>
+                <div className="text-[6px] sm:text-[8px] font-black text-slate-400 uppercase tracking-tighter">PUNTOS</div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Action Buttons */}
-      <div className="w-full flex flex-col gap-2.5">
-        <button
-          onClick={() => {
-            sounds.sfxPop();
-            onPlayAgainSame();
-          }}
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-black text-lg shadow-md active:scale-95 transition flex items-center justify-center gap-2"
-        >
-          <RefreshCw className="w-5 h-5" />
-          <span>Revancha (mismo circuito) 🔁</span>
-        </button>
+      {/* 🏁 Sticky Action Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 z-40 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none">
+        <div className="max-w-md mx-auto pointer-events-auto flex flex-col gap-2">
+          <button
+            onClick={() => { sounds.sfxPop(); onPlayAgainNew(); }}
+            className="w-full py-3 sm:py-4 rounded-[1.5rem] bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black text-sm sm:text-lg shadow-xl btn-squishy border-b-4 border-indigo-800 flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            <span className="tracking-tight uppercase">NUEVA AVENTURA</span>
+          </button>
 
-        <button
-          onClick={() => {
-            sounds.sfxPop();
-            onPlayAgainNew();
-          }}
-          className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-black text-base shadow-md active:scale-95 transition flex items-center justify-center gap-2"
-        >
-          <Sparkles className="w-5 h-5 text-amber-950" />
-          <span>¡Nuevo Circuito Mágico! 🎲</span>
-        </button>
-
-        <button
-          onClick={() => {
-            sounds.sfxPop();
-            onGoToMenu();
-          }}
-          className="w-full py-2.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 font-extrabold text-sm border border-slate-200 transition flex items-center justify-center gap-1.5"
-        >
-          <Settings className="w-4 h-4 text-slate-500" />
-          <span>Cambiar juego o jugadores 🎨</span>
-        </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { sounds.sfxPop(); onPlayAgainSame(); }}
+              className="flex-1 py-3 rounded-xl bg-white text-slate-700 font-black text-[10px] sm:text-xs shadow-lg btn-squishy border-b-2 border-slate-200 flex items-center justify-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> REVANCHA
+            </button>
+            <button
+              onClick={() => { sounds.sfxPop(); onGoToMenu(); }}
+              className="flex-1 py-3 rounded-xl bg-white text-slate-700 font-black text-[10px] sm:text-xs shadow-lg btn-squishy border-b-2 border-slate-200 flex items-center justify-center gap-1.5"
+            >
+              <Settings className="w-3.5 h-3.5" /> MENÚ
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

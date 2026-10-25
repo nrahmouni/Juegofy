@@ -1,24 +1,44 @@
 export type ThemeId = 'candy' | 'jungle' | 'space' | 'ocean' | 'volcano';
 
-export type StickerId = 'crown' | 'party' | 'cat' | 'star' | 'glasses' | 'astronaut' | 'pirate' | 'hero' | 'cape' | 'magic' | 'none';
+export type StickerId =
+  | 'none'
+  | 'crown'
+  | 'glasses'
+  | 'party'
+  | 'pirate'
+  | 'cat'
+  | 'star'
+  | 'wizard'
+  | 'hero'
+  | 'dino'
+  | 'astronaut';
 
-export type PowerUpType = 'magnet' | 'shield' | 'doublePoints' | 'superJump' | 'nitro' | 'plasma';
+export type CostumeId =
+  | 'none'
+  | 'crown'
+  | 'hero_cape'
+  | 'pirate'
+  | 'astronaut'
+  | 'dino'
+  | 'rainbow_shades';
 
-export type ControlMode = 'offset' | 'joystick' | 'direct';
-
-export type AgeGroup = 'preschool' | 'kids'; // 'preschool': 3-5 years, 'kids': 6-8 years
+export type AgeGroup = 'preschool' | 'kids';
 
 export type GameModeId =
-  | 'classic_bomb'
-  | 'lang_es_ar'
+  | 'lang_spanish_abc'
   | 'lang_flemish'
+  | 'lang_spanish_words'
+  | 'lang_arabic'
   | 'lang_french'
-  | 'math_magic'
-  | 'alphabet_hunt';
+  | 'safari_adventure'
+  | 'monster_feeder'
+  | 'rocket_race'
+  | 'slingshot_magic'
+  | 'crazy_catcher';
 
 export type VehicleId = 'kart' | 'rocket' | 'ufo' | 'dragon' | 'broom' | 'cyber';
 
-export type CostumeId = 'none' | 'crown' | 'hero_cape' | 'pirate' | 'astronaut' | 'dino' | 'rainbow_shades';
+export type TrailId = 'sparkles' | 'rainbow' | 'bubbles' | 'fire' | 'hearts' | 'lightning';
 
 export interface PlayerConfig {
   id: number;
@@ -27,14 +47,38 @@ export interface PlayerConfig {
   fallbackEmoji: string;
   sticker: StickerId;
   color: string;
-  activePowerUp?: PowerUpType | null;
-  comboCount?: number;
-  selectedLevel?: number; // 1 to 5
   coins?: number;
-  unlockedVehicles?: VehicleId[];
-  unlockedCostumes?: CostumeId[];
+  vehicle?: VehicleId;
   selectedVehicle?: VehicleId;
   selectedCostume?: CostumeId;
+  trail?: TrailId;
+  unlockedStickers?: StickerId[];
+  unlockedVehicles?: VehicleId[];
+  unlockedCostumes?: CostumeId[];
+  unlockedTrails?: TrailId[];
+}
+
+export interface ThemeConfig {
+  id: ThemeId;
+  name: string;
+  icon: string;
+  subtitle?: string;
+  bgGradient?: string;
+  bgColor1?: string;
+  bgColor2?: string;
+  pathColor?: string;
+  pathBorderColor?: string;
+  roadColor?: string;
+  roadBorder?: string;
+  roadDash?: string;
+  accentColor: string;
+  decorations: string[];
+  obstacleName?: string;
+  obstacleEmoji?: string;
+  movingObstacleEmoji?: string;
+  movingObstacleName?: string;
+  bombStyle?: string;
+  musicScale?: number[];
 }
 
 export interface PlayerResult {
@@ -44,72 +88,16 @@ export interface PlayerResult {
   fallbackEmoji: string;
   color: string;
   ok: boolean;
+  why?: 'bomb' | 'bee' | 'edge' | 'lift';
   time: number;
   progress: number;
   stars: number;
-  coinsEarned?: number;
-  maxCombo?: number;
   wordsLearned?: number;
   shieldUsed: boolean;
   challengeBonus: number;
   pts: number;
-  path: [number, number][];
+  coinsEarned?: number;
+  path: { x: number; y: number }[];
   gameMode?: GameModeId;
   selectedLevel?: number;
-  why?: 'bomb' | 'bee' | 'edge' | 'lift';
 }
-
-export interface TrackItem {
-  id: number;
-  t: 's' | 'b' | 'm' | 'shield' | 'magnet' | 'mystery' | 'target_correct' | 'target_wrong' | 'nitro' | 'coin';
-  x: number;
-  y: number;
-  r: number;
-  nx?: number;
-  ny?: number;
-  am?: number;
-  sp?: number;
-  ph?: number;
-  g?: boolean; // collected
-  // Specific data for learning items
-  text?: string;
-  subText?: string;
-  emoji?: string;
-  isCorrect?: boolean;
-}
-
-export interface TrackData {
-  pts: [number, number][];
-  it: TrackItem[];
-  w: number;
-  decorations: { x: number; y: number; emoji: string; size: number; rot?: number }[];
-}
-
-export interface ThemeConfig {
-  id: ThemeId;
-  name: string;
-  icon: string;
-  subtitle: string;
-  bgColor1: string;
-  bgColor2: string;
-  roadColor: string;
-  roadBorder: string;
-  roadDash: string;
-  accentColor: string;
-  decorations: string[];
-  movingObstacleEmoji: string;
-  movingObstacleName: string;
-  bombStyle: 'candy' | 'jungle' | 'space' | 'ocean' | 'volcano';
-  musicScale: number[];
-}
-
-export type GameState =
-  | 'SETUP'
-  | 'THEME_SELECT'
-  | 'READY'
-  | 'PLAYING'
-  | 'PAUSED'
-  | 'CHALLENGE'
-  | 'RESULT'
-  | 'PODIUM';
-

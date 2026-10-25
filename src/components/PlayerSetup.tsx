@@ -1,24 +1,40 @@
 import React, { useState } from 'react';
-import { Camera, Users, Sparkles, Play, Maximize, Volume2, VolumeX, Music, BookOpen, Baby, Rocket, ShoppingBag } from 'lucide-react';
+import {
+  Settings,
+  Play,
+  ShoppingBag,
+  X,
+  Maximize,
+  Volume2,
+  VolumeX,
+  Trash2,
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  Camera,
+  RotateCcw,
+  Brain,
+} from 'lucide-react';
 import { PlayerConfig, ThemeId, StickerId, GameModeId, AgeGroup } from '../types/game';
-import { THEMES, STICKERS } from '../data/themes';
-import { GAME_MODES } from '../data/learningData';
-import { VEHICLES, COSTUMES } from '../data/garage';
+import { STICKERS, PLAYER_COLORS, DEFAULT_AVATARS } from '../data/themes';
+import { GAME_MODES, MAX_GAME_LEVEL } from '../data/learningData';
 import { CameraCaptureModal } from './CameraCaptureModal';
 import { GarageShopModal } from './GarageShopModal';
+import { SmartLearningModal } from './SmartLearningModal';
 import { sounds } from '../audio/soundManager';
 
 interface Props {
   players: PlayerConfig[];
   setPlayers: React.Dispatch<React.SetStateAction<PlayerConfig[]>>;
-  numPlayers: number;
-  setNumPlayers: (n: number) => void;
   selectedTheme: ThemeId;
   setSelectedTheme: (t: ThemeId) => void;
   difficulty: number;
   setDifficulty: (d: number) => void;
   selectedLevel: number;
   setSelectedLevel: (l: number) => void;
+  learnedWordIds: string[];
+  missedWordIds: string[];
+  onResetProgress: () => void;
   gameMode: GameModeId;
   setGameMode: (m: GameModeId) => void;
   ageGroup: AgeGroup;
@@ -28,21 +44,16 @@ interface Props {
   isFullscreen: boolean;
   isMuted: boolean;
   onToggleMute: () => void;
-  isMusicEnabled: boolean;
-  onToggleMusic: () => void;
 }
 
 export const PlayerSetup: React.FC<Props> = ({
   players,
   setPlayers,
-  numPlayers,
-  setNumPlayers,
-  selectedTheme,
-  setSelectedTheme,
-  difficulty,
-  setDifficulty,
   selectedLevel,
   setSelectedLevel,
+  learnedWordIds,
+  missedWordIds,
+  onResetProgress,
   gameMode,
   setGameMode,
   ageGroup,
@@ -52,217 +63,313 @@ export const PlayerSetup: React.FC<Props> = ({
   isFullscreen,
   isMuted,
   onToggleMute,
-  isMusicEnabled,
-  onToggleMusic,
 }) => {
   const [editingPlayerIndex, setEditingPlayerIndex] = useState<number | null>(null);
   const [isShopOpen, setIsShopOpen] = useState<boolean>(false);
-  const [shopActivePlayerId, setShopActivePlayerId] = useState<number>(0);
-
-  const activePlayers = players.slice(0, numPlayers);
+  const [isSmartModalOpen, setIsSmartModalOpen] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   const handleUpdateName = (index: number, newName: string) => {
     setPlayers((prev) =>
-      prev.map((p, idx) => (idx === index ? { ...p, name: newName } : p))
+      prev.map((p, idx) => (idx === index ? { ...p, name: newName.substring(0, 12).toUpperCase() } : p))
     );
   };
 
   const handleSavePhoto = (photoUrl: string | null, sticker: StickerId) => {
     if (editingPlayerIndex === null) return;
     setPlayers((prev) =>
-      prev.map((p, idx) =>
-        idx === editingPlayerIndex ? { ...p, photoUrl, sticker } : p
-      )
+      prev.map((p, idx) => (idx === editingPlayerIndex ? { ...p, photoUrl, sticker } : p))
     );
     setEditingPlayerIndex(null);
   };
 
+  const handleAddPlayer = () => {
+    if (players.length >= 4) return;
+    sounds.sfxPop();
+    const nextIdx = players.length;
+    const defaultNames = ['FAYSAL', 'MERIEM', 'LEO', 'SOFÍA'];
+    const newPlayer: PlayerConfig = {
+      id: Date.now(),
+      name: defaultNames[nextIdx] || `JUGADOR ${nextIdx + 1}`,
+      photoUrl: null,
+      fallbackEmoji: DEFAULT_AVATARS[nextIdx % DEFAULT_AVATARS.length].emoji,
+      sticker: 'none',
+      color: PLAYER_COLORS[nextIdx % PLAYER_COLORS.length],
+      coins: 100,
+    };
+    setPlayers([...players, newPlayer]);
+    sounds.speak(`Hola ${newPlayer.name}`, 'es-ES');
+  };
+
+  const handleRemovePlayer = (id: number) => {
+    if (players.length <= 1) return;
+    sounds.sfxPop();
+    setPlayers(players.filter((p) => p.id !== id));
+  };
+
+  const handleMovePlayer = (index: number, direction: 'left' | 'right') => {
+    sounds.sfxPop();
+    if (direction === 'left' && index === 0) return;
+    if (direction === 'right' && index === players.length - 1) return;
+
+    const newPlayers = [...players];
+    const swapIndex = direction === 'left' ? index - 1 : index + 1;
+    [newPlayers[index], newPlayers[swapIndex]] = [newPlayers[swapIndex], newPlayers[index]];
+    setPlayers(newPlayers);
+  };
+
+  const handleSelectGame = (modeId: GameModeId, title: string) => {
+    sounds.sfxPop();
+    setGameMode(modeId);
+    sounds.speak(title, 'es-ES');
+  };
+
   return (
-    <div className="relative w-full max-w-xl mx-auto flex flex-col items-center p-3 sm:p-5 select-none animate-in fade-in duration-300">
-      {/* Top Header Controls */}
-      <div className="w-full flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => {
-              sounds.sfxPop();
-              onToggleFullscreen();
-            }}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-700 shadow-sm font-bold text-xs flex items-center gap-1.5 border border-slate-200 transition active:scale-95"
-            title="Pantalla Completa"
-          >
-            <Maximize className="w-4 h-4 text-pink-600" />
-            <span className="hidden sm:inline">
-              {isFullscreen ? 'Salir Fullscreen' : 'Pantalla Completa'}
-            </span>
-          </button>
+    <div className="relative w-full h-[100dvh] flex flex-col justify-between bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 overflow-hidden px-2.5 py-2.5 sm:px-6 sm:py-4 select-none">
+      {/* 1. Compact Header */}
+      <div className="flex justify-between items-center w-full max-w-4xl mx-auto shrink-0">
+        <div>
+          <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white leading-none">
+            MUNDO <span className="text-yellow-400">MÁGICO</span>
+          </h1>
+          <p className="text-[10px] sm:text-xs font-bold text-indigo-200/80">
+            Nivel {selectedLevel}/{MAX_GAME_LEVEL} · {selectedLevel >= 6 ? '✨ Frases y Oraciones' : '📚 Vocabulario'}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Shop Button in Header */}
-          <button
-            onClick={() => {
-              sounds.sfxPowerup();
-              setIsShopOpen(true);
-            }}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-900 font-black text-xs shadow-md border border-yellow-300 flex items-center gap-1.5 transition active:scale-95 animate-pulse"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>Tienda 🪙</span>
-          </button>
-
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => {
               sounds.sfxPop();
-              onToggleMusic();
+              setIsSmartModalOpen(true);
             }}
-            className={`p-2 rounded-xl shadow-sm text-xs font-bold border transition active:scale-95 flex items-center gap-1 ${
-              isMusicEnabled
-                ? 'bg-amber-100 border-amber-300 text-amber-900'
-                : 'bg-white/70 border-slate-200 text-slate-400'
-            }`}
-            title="Música de fondo"
+            className="px-2.5 py-2 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-black text-xs flex items-center gap-1.5 btn-squishy"
+            title="Aprendizaje Inteligente y Diccionario"
           >
-            <Music className="w-4 h-4" />
-            <span className="hidden sm:inline">Música</span>
+            <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">IA Progreso</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px]">
+              {learnedWordIds.length}
+            </span>
           </button>
-
           <button
             onClick={() => {
               sounds.sfxPop();
               onToggleMute();
             }}
-            className={`p-2 rounded-xl shadow-sm text-xs font-bold border transition active:scale-95 flex items-center gap-1 ${
-              !isMuted
-                ? 'bg-emerald-100 border-emerald-300 text-emerald-900'
-                : 'bg-rose-100 border-rose-300 text-rose-700'
-            }`}
-            title="Efectos de sonido"
+            className="p-2 sm:p-2.5 rounded-2xl bg-white/10 text-white border border-white/15 btn-squishy"
+            aria-label="Silenciar o activar audio"
           >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            <span className="hidden sm:inline">{isMuted ? 'Silencio' : 'Sonido'}</span>
+            {isMuted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-emerald-400" />}
           </button>
-        </div>
-      </div>
-
-      {/* Main Title Card */}
-      <div className="text-center mb-3">
-        <h1 className="text-4xl sm:text-5xl font-black text-pink-600 tracking-tight drop-shadow-sm flex items-center justify-center gap-2">
-          <span>💣</span>
-          <span className="bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 bg-clip-text text-transparent">
-            Camino Bombástico
-          </span>
-          <span>⭐</span>
-        </h1>
-        <p className="text-sm font-bold text-indigo-950 mt-0.5 max-w-md mx-auto">
-          ¡Juegos de acción y aprendizaje para niños con tu foto en el circuito!
-        </p>
-      </div>
-
-      {/* AGE SELECTOR CARD */}
-      <div className="w-full bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border-2 border-indigo-200 mb-4">
-        <label className="text-xs font-black uppercase text-indigo-600 tracking-wider flex items-center gap-1.5 mb-2">
-          <Baby className="w-4 h-4" /> Adaptación por Edad
-        </label>
-        <div className="grid grid-cols-2 gap-2.5">
           <button
             onClick={() => {
               sounds.sfxPop();
-              setAgeGroup('preschool');
+              setIsShopOpen(true);
             }}
-            className={`p-2.5 rounded-2xl border-3 text-left transition flex items-center gap-3 ${
-              ageGroup === 'preschool'
-                ? 'border-indigo-500 bg-indigo-50 shadow-md scale-[1.02]'
-                : 'border-slate-200 bg-white hover:bg-slate-50'
-            }`}
+            className="p-2 sm:p-2.5 rounded-2xl bg-white/10 text-yellow-400 border border-white/15 btn-squishy"
+            aria-label="Tienda"
           >
-            <span className="text-3xl">🐣</span>
-            <div>
-              <div className="text-xs font-black text-indigo-950 flex items-center gap-1">
-                <span>Pequeños</span>
-                <span className="text-[10px] text-indigo-600 bg-indigo-100 px-1.5 py-0.2 rounded-full">3-5 años</span>
-              </div>
-              <div className="text-[10px] font-medium text-slate-500 leading-tight mt-0.5">
-                Ilustraciones gigantes, conteo de frutas y guía por voz
-              </div>
-            </div>
+            <ShoppingBag className="w-5 h-5" />
           </button>
-
           <button
             onClick={() => {
               sounds.sfxPop();
-              setAgeGroup('kids');
+              setShowSettings(true);
             }}
-            className={`p-2.5 rounded-2xl border-3 text-left transition flex items-center gap-3 ${
-              ageGroup === 'kids'
-                ? 'border-pink-500 bg-pink-50 shadow-md scale-[1.02]'
-                : 'border-slate-200 bg-white hover:bg-slate-50'
-            }`}
+            className="p-2 sm:p-2.5 rounded-2xl bg-white/10 text-white border border-white/15 btn-squishy"
+            aria-label="Ajustes"
           >
-            <span className="text-3xl">🚀</span>
-            <div>
-              <div className="text-xs font-black text-rose-950 flex items-center gap-1">
-                <span>Mayores</span>
-                <span className="text-[10px] text-pink-600 bg-pink-100 px-1.5 py-0.2 rounded-full">6-8 años</span>
-              </div>
-              <div className="text-[10px] font-medium text-slate-500 leading-tight mt-0.5">
-                Palabras completas, ritmo ágil y desafíos interactivos
-              </div>
-            </div>
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* 1. SIX LEARNING & ARCADE GAMES SELECTOR */}
-      <div className="w-full bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border-2 border-pink-200 mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-black uppercase text-pink-600 tracking-wider flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4" /> Elige tu Juego (6 Juegos Disponibles)
-          </label>
-          <span className="text-[11px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-            ⭐ 6 en 1
+      {/* 2. Players Turn Order & Profile Editor */}
+      <div className="w-full max-w-4xl mx-auto my-1 shrink-0">
+        <div className="flex items-center justify-between mb-1 px-1">
+          <span className="text-[10px] sm:text-[11px] font-black text-indigo-200 uppercase tracking-wider">
+            Jugadores ({players.length}/4) — Toca el nombre para cambiarlo
           </span>
+          {players.length < 4 && (
+            <button
+              onClick={handleAddPlayer}
+              className="px-2.5 py-1 rounded-xl bg-emerald-500 text-white font-black text-[11px] flex items-center gap-1 shadow-md btn-squishy"
+            >
+              <Plus className="w-3.5 h-3.5" /> Añadir
+            </button>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {players.map((player, idx) => (
+            <div
+              key={player.id}
+              className="relative bg-white rounded-2xl sm:rounded-3xl p-2 shadow-xl border-b-4 flex items-center sm:flex-col gap-2 sm:gap-1 transition-all"
+              style={{ borderBottomColor: player.color }}
+            >
+              {/* Turn Badge */}
+              <div
+                className="absolute -top-1.5 -left-1 px-2 py-0.5 rounded-full text-[9px] font-black text-white shadow z-10"
+                style={{ backgroundColor: player.color }}
+              >
+                {idx + 1}º
+              </div>
+
+              {/* Delete Player Button */}
+              {players.length > 1 && (
+                <button
+                  onClick={() => handleRemovePlayer(player.id)}
+                  className="absolute top-1 right-1 p-1 bg-rose-100 text-rose-600 hover:bg-rose-500 hover:text-white rounded-full transition-colors btn-squishy z-10"
+                  aria-label={`Eliminar a ${player.name}`}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+
+              {/* Avatar & Camera Trigger */}
+              <button
+                onClick={() => {
+                  sounds.sfxPop();
+                  setEditingPlayerIndex(idx);
+                }}
+                className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-2xl overflow-hidden shrink-0 btn-squishy"
+              >
+                {player.photoUrl ? (
+                  <img src={player.photoUrl} alt={player.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{player.fallbackEmoji}</span>
+                )}
+                {player.sticker !== 'none' && (
+                  <span className="absolute -top-1 -right-1 text-sm">
+                    {STICKERS.find((s) => s.id === player.sticker)?.icon}
+                  </span>
+                )}
+                <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-0.5 rounded-tl-md">
+                  <Camera className="w-2.5 h-2.5" />
+                </div>
+              </button>
+
+              <div className="flex-1 min-w-0 w-full flex flex-col">
+                <input
+                  type="text"
+                  value={player.name}
+                  onChange={(e) => handleUpdateName(idx, e.target.value)}
+                  aria-label="Nombre del jugador"
+                  className="w-full bg-slate-100 py-0.5 px-1.5 rounded-lg text-center font-black text-xs text-slate-900 uppercase outline-none border-2 border-transparent focus:border-indigo-500 focus:bg-white"
+                />
+
+                <div className="flex items-center justify-between w-full mt-1">
+                  <button
+                    onClick={() => handleMovePlayer(idx, 'left')}
+                    disabled={idx === 0}
+                    className="p-0.5 rounded bg-slate-100 text-slate-600 disabled:opacity-20 btn-squishy"
+                    aria-label="Mover antes"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                  </button>
+                  <span className="text-[8px] font-black text-slate-400 uppercase">Turno {idx + 1}</span>
+                  <button
+                    onClick={() => handleMovePlayer(idx, 'right')}
+                    disabled={idx === players.length - 1}
+                    className="p-0.5 rounded bg-slate-100 text-slate-600 disabled:opacity-20 btn-squishy"
+                    aria-label="Mover después"
+                  >
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. 8-Level Selector (1-5 Words, 6-8 Phrases) & 8 Mini-Games Grid */}
+      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-between min-h-0 my-1">
+        {/* Level Selector Bar */}
+        <div className="flex items-center justify-between bg-white/10 rounded-2xl px-2.5 py-1.5 mb-1.5 border border-white/10 shrink-0 gap-1 overflow-x-auto">
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] font-black text-yellow-400 uppercase mr-0.5">Nivel:</span>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((lvl) => {
+              const isPhraseLvl = lvl >= 6;
+              const isSelected = selectedLevel === lvl;
+              return (
+                <button
+                  key={lvl}
+                  onClick={() => {
+                    sounds.sfxPop();
+                    setSelectedLevel(lvl);
+                    sounds.speak(
+                      isPhraseLvl ? `Nivel ${lvl}, Frases Mágicas` : `Nivel ${lvl}`,
+                      'es-ES'
+                    );
+                  }}
+                  className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl font-black text-xs transition-all btn-squishy flex items-center justify-center ${
+                    isSelected
+                      ? isPhraseLvl
+                        ? 'bg-pink-500 text-white scale-110 shadow-md ring-2 ring-yellow-300'
+                        : 'bg-yellow-400 text-slate-950 scale-110 shadow-md'
+                      : isPhraseLvl
+                      ? 'bg-pink-500/25 text-pink-200 hover:bg-pink-500/40'
+                      : 'bg-white/10 text-white/75 hover:bg-white/20'
+                  }`}
+                  title={isPhraseLvl ? `Nivel ${lvl}: Frases y Oraciones` : `Nivel ${lvl}: Vocabulario`}
+                >
+                  {lvl}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => {
+              sounds.sfxPop();
+              onResetProgress();
+              sounds.speak('Palabras y nivel reiniciados', 'es-ES');
+            }}
+            className="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 font-bold text-[10px] flex items-center gap-1 btn-squishy shrink-0"
+            title="Reiniciar palabras aprendidas y volver al Nivel 1"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Reset ({learnedWordIds.length})</span>
+          </button>
+        </div>
+
+        {/* 8 Mini-Games Grid (2 cols on mobile, 4 cols on desktop) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 overflow-y-auto py-0.5 flex-1 content-center">
           {GAME_MODES.map((mode) => {
-            const isSelected = gameMode === mode.id;
+            const isSelected = mode.id === gameMode;
             return (
               <button
                 key={mode.id}
-                onClick={() => {
-                  sounds.sfxPop();
-                  setGameMode(mode.id);
-                }}
-                className={`p-2.5 rounded-2xl border-3 text-left transition relative flex flex-col justify-between overflow-hidden ${
+                onClick={() => handleSelectGame(mode.id, mode.title)}
+                className={`relative rounded-2xl sm:rounded-3xl p-2 sm:p-3 text-left transition-all flex items-center sm:flex-col sm:items-start gap-2 border-b-4 sm:border-b-6 btn-squishy ${
                   isSelected
-                    ? 'border-pink-500 bg-gradient-to-b from-pink-50 to-amber-50 shadow-md scale-[1.02]'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
+                    ? 'bg-white border-yellow-400 ring-3 ring-yellow-400/80 shadow-xl scale-[1.02]'
+                    : 'bg-white/90 border-slate-300 opacity-85 hover:opacity-100'
                 }`}
               >
-                {/* Active check ribbon */}
-                {isSelected && (
-                  <div className="absolute top-0 right-0 w-6 h-6 bg-pink-500 text-white text-[11px] font-black rounded-bl-xl flex items-center justify-center">
-                    ✓
+                <div className="flex items-center gap-2 w-full">
+                  <div
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner"
+                    style={{ backgroundColor: `${mode.color}20` }}
+                  >
+                    {mode.icon}
                   </div>
-                )}
-
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-2xl">{mode.icon}</span>
-                    <span
-                      className="text-[9px] font-black px-1.5 py-0.5 rounded-md text-white truncate max-w-[85px]"
-                      style={{ backgroundColor: mode.color }}
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className="text-[9px] font-black uppercase tracking-tight truncate"
+                      style={{ color: mode.color }}
                     >
                       {mode.badge}
-                    </span>
+                    </div>
+                    <div className="text-xs sm:text-sm font-black text-slate-900 uppercase leading-tight truncate">
+                      {mode.title}
+                    </div>
+                    <div className="text-[9px] font-bold text-slate-500 truncate">
+                      {mode.mechanicBadge}
+                    </div>
                   </div>
-                  <div className="text-xs font-black text-slate-800 leading-tight">
-                    {mode.shortTitle}
-                  </div>
-                </div>
-
-                <div className="text-[10px] text-slate-500 font-semibold mt-1 leading-tight line-clamp-2">
-                  {mode.tagline}
                 </div>
               </button>
             );
@@ -270,267 +377,94 @@ export const PlayerSetup: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* 2. Number of Players Selector */}
-      <div className="w-full bg-white/90 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border-2 border-pink-200 mb-4">
-        <label className="text-xs font-black uppercase text-pink-600 tracking-wider flex items-center gap-1.5 mb-2">
-          <Users className="w-4 h-4" /> ¿Cuántos jugáis hoy?
-        </label>
-        <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4].map((n) => (
-            <button
-              key={n}
-              onClick={() => {
-                sounds.sfxPop();
-                setNumPlayers(n);
-              }}
-              className={`py-2 rounded-xl font-black text-lg transition flex items-center justify-center gap-1.5 border-3 ${
-                numPlayers === n
-                  ? 'bg-amber-400 border-amber-500 text-amber-950 scale-105 shadow-md'
-                  : 'bg-slate-100 border-transparent text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <span>{n}</span>
-              <span className="text-xs font-bold text-slate-500">
-                {n === 1 ? 'jugador' : 'jugadores'}
-              </span>
-            </button>
-          ))}
-        </div>
+      {/* 4. Giant Start Button */}
+      <div className="w-full max-w-4xl mx-auto pt-1 shrink-0">
+        <button
+          onClick={() => {
+            sounds.sfxPop();
+            onStartGame();
+          }}
+          className="w-full py-3.5 sm:py-4.5 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-500 to-indigo-600 text-white font-black text-xl sm:text-3xl shadow-2xl btn-squishy border-b-8 border-indigo-950 flex items-center justify-center gap-3"
+        >
+          <Play className="w-6 h-6 sm:w-7 sm:h-7 fill-white" />
+          <span className="tracking-tight uppercase">
+            ¡JUGAR ({players[0]?.name})!
+          </span>
+        </button>
       </div>
 
-      {/* 3. Players Setup Cards (Photo & Name & Vehicle/Costume Badge) */}
-      <div className="w-full bg-white/90 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border-2 border-pink-200 mb-4">
-        <div className="flex items-center justify-between mb-2.5">
-          <label className="text-xs font-black uppercase text-pink-600 tracking-wider flex items-center gap-1.5">
-            <Camera className="w-4 h-4" /> Nombres y Equipamiento
-          </label>
-          <button
-            onClick={() => {
-              sounds.sfxPowerup();
-              setShopActivePlayerId(0);
-              setIsShopOpen(true);
-            }}
-            className="text-[11px] font-black text-amber-700 hover:underline flex items-center gap-1"
-          >
-            <span>Tienda Mágica 🏰</span>
-          </button>
-        </div>
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-[3rem] p-7 shadow-2xl relative border-b-8 border-slate-200">
+            <button
+              onClick={() => setShowSettings(false)}
+              className="absolute -top-3 -right-3 p-3.5 bg-rose-500 text-white rounded-2xl shadow-xl btn-squishy"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h3 className="text-2xl font-black text-indigo-950 mb-6 flex items-center gap-2 uppercase tracking-tight">
+              <Settings className="w-6 h-6" /> Ajustes
+            </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {activePlayers.map((player, idx) => {
-            const stickerObj = STICKERS.find((s) => s.id === player.sticker);
-            const vehObj = VEHICLES.find((v) => v.id === (player.selectedVehicle || 'kart'));
-            const cosObj = COSTUMES.find((c) => c.id === (player.selectedCostume || 'none'));
-            const coins = player.coins ?? 100;
-
-            return (
-              <div
-                key={player.id}
-                className="relative flex items-center gap-2.5 p-2.5 rounded-2xl border-2 transition shadow-xs"
-                style={{
-                  borderColor: player.color,
-                  backgroundColor: `${player.color}15`,
-                }}
-              >
-                {/* Avatar with photo & sticker & costume badge */}
-                <div className="relative group shrink-0">
-                  <div
-                    className="w-14 h-14 rounded-full border-3 overflow-hidden shadow-md flex items-center justify-center bg-white"
-                    style={{ borderColor: player.color }}
-                  >
-                    {player.photoUrl ? (
-                      <img
-                        src={player.photoUrl}
-                        alt={player.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl select-none">{player.fallbackEmoji}</span>
-                    )}
-                  </div>
-
-                  {/* Costume or Sticker Overlay */}
-                  {cosObj && cosObj.id !== 'none' && (
-                    <div className="absolute -top-2 -left-1 text-xl select-none filter drop-shadow">
-                      {cosObj.icon}
-                    </div>
-                  )}
-
-                  {player.sticker !== 'none' && stickerObj && (
-                    <div className="absolute -top-1 -right-1 text-lg select-none filter drop-shadow">
-                      {stickerObj.icon}
-                    </div>
-                  )}
-
-                  {/* Camera Quick Button */}
+            <div className="space-y-5">
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                  Edad de los Jugadores
+                </label>
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => {
                       sounds.sfxPop();
-                      setEditingPlayerIndex(idx);
+                      setAgeGroup('preschool');
                     }}
-                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-pink-500 hover:bg-pink-600 text-white flex items-center justify-center shadow-md active:scale-95 transition"
-                    title="Hacer foto o cambiar adorno"
+                    className={`p-4 rounded-2xl border-4 flex flex-col items-center gap-1 transition-all ${
+                      ageGroup === 'preschool'
+                        ? 'bg-indigo-50 border-indigo-500'
+                        : 'bg-slate-50 border-transparent opacity-60'
+                    }`}
                   >
-                    <Camera className="w-3 h-3" />
+                    <span className="text-3xl">🐣</span>
+                    <span className="font-black text-indigo-900 text-xs">3 a 5 AÑOS</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      sounds.sfxPop();
+                      setAgeGroup('kids');
+                    }}
+                    className={`p-4 rounded-2xl border-4 flex flex-col items-center gap-1 transition-all ${
+                      ageGroup === 'kids'
+                        ? 'bg-pink-50 border-pink-500'
+                        : 'bg-slate-50 border-transparent opacity-60'
+                    }`}
+                  >
+                    <span className="text-3xl">🚀</span>
+                    <span className="font-black text-pink-900 text-xs">6 a 9 AÑOS</span>
                   </button>
                 </div>
-
-                {/* Player Name & Vehicle / Coins info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-                      Jugador {idx + 1}
-                    </span>
-                    <span className="text-[10px] font-black text-amber-600 bg-amber-100 px-1.5 py-0.2 rounded-full">
-                      🪙 {coins}
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    maxLength={14}
-                    value={player.name}
-                    onChange={(e) => handleUpdateName(idx, e.target.value)}
-                    placeholder={`Jugador ${idx + 1}`}
-                    className="w-full font-black text-sm text-slate-800 bg-white/90 border border-slate-300 rounded-lg px-2 py-0.5 focus:outline-hidden focus:ring-2 focus:ring-pink-400"
-                  />
-                  <div className="flex items-center justify-between mt-1">
-                    <button
-                      onClick={() => {
-                        sounds.sfxPop();
-                        setEditingPlayerIndex(idx);
-                      }}
-                      className="text-[11px] font-bold text-pink-600 hover:text-pink-700 underline"
-                    >
-                      {player.photoUrl ? 'Foto 📸' : '¡Hacer foto! 📸'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        sounds.sfxPowerup();
-                        setShopActivePlayerId(player.id);
-                        setIsShopOpen(true);
-                      }}
-                      className="text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-1.5 py-0.5 rounded-md border border-indigo-200 flex items-center gap-1"
-                    >
-                      <span>{vehObj?.icon || '🏎️'}</span>
-                      <span className="truncate max-w-[70px]">{vehObj?.name.split(' ')[0]}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
-            );
-          })}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={onToggleFullscreen}
+                  className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-black text-slate-700 text-xs flex items-center justify-center gap-2 btn-squishy"
+                >
+                  <Maximize className="w-4 h-4" /> {isFullscreen ? 'Ventana' : 'Pantalla Completa'}
+                </button>
+                <button
+                  onClick={onToggleMute}
+                  className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-black text-slate-700 text-xs flex items-center justify-center gap-2 btn-squishy"
+                >
+                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />} Sonido
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 4. World Themes Selector */}
-      <div className="w-full bg-white/90 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border-2 border-pink-200 mb-4">
-        <label className="text-xs font-black uppercase text-pink-600 tracking-wider flex items-center gap-1.5 mb-2">
-          <Sparkles className="w-4 h-4 text-amber-500" /> Elige el Mundo Temático
-        </label>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {(Object.keys(THEMES) as ThemeId[]).map((themeId) => {
-            const th = THEMES[themeId];
-            const isSel = selectedTheme === themeId;
-            return (
-              <button
-                key={themeId}
-                onClick={() => {
-                  sounds.sfxPop();
-                  setSelectedTheme(themeId);
-                }}
-                className={`p-2 rounded-xl border-3 text-center transition flex flex-col items-center justify-center gap-1 ${
-                  isSel
-                    ? 'bg-amber-300 border-amber-500 scale-105 shadow-md text-amber-950 font-black'
-                    : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700 font-bold'
-                }`}
-              >
-                <span className="text-2xl">{th.icon}</span>
-                <span className="text-[11px] font-extrabold leading-tight">{th.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 5. Difficulty & Campaign Level Selector */}
-      <div className="w-full bg-white/90 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border-2 border-pink-200 mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-black uppercase text-pink-600 tracking-wider flex items-center gap-1.5">
-            <Rocket className="w-4 h-4 text-purple-600" /> Nivel de Campaña (Niveles 1 al 5)
-          </label>
-          <span className="text-[10px] font-black text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
-            Nivel {selectedLevel}
-          </span>
-        </div>
-
-        {/* 5 Level Buttons */}
-        <div className="grid grid-cols-5 gap-1.5 mb-3">
-          {[
-            { lvl: 1, label: 'Niv 1', badge: '🐣', desc: '3 Opciones' },
-            { lvl: 2, label: 'Niv 2', badge: '⭐', desc: 'Sube velocidad' },
-            { lvl: 3, label: 'Niv 3', badge: '🚀', desc: '4 Opciones' },
-            { lvl: 4, label: 'Niv 4', badge: '🔥', desc: 'Bombas' },
-            { lvl: 5, label: 'Niv 5', badge: '👑', desc: '5 Opciones' },
-          ].map((item) => (
-            <button
-              key={item.lvl}
-              onClick={() => {
-                sounds.sfxPop();
-                setSelectedLevel(item.lvl);
-              }}
-              className={`p-1.5 rounded-xl border-2 text-center transition flex flex-col items-center justify-center gap-0.5 ${
-                selectedLevel === item.lvl
-                  ? 'bg-purple-500 border-purple-700 text-white font-black scale-105 shadow-md'
-                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700 font-bold'
-              }`}
-            >
-              <span className="text-lg">{item.badge}</span>
-              <span className="text-[11px] font-black leading-none">{item.label}</span>
-              <span className="text-[8px] opacity-80 leading-none truncate w-full">{item.desc}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Difficulty Mode Selection */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { id: 0, label: '🐣 Modo Suave', desc: 'Ancho & Guiado' },
-            { id: 1, label: '🚀 Modo Normal', desc: 'Equilibrado' },
-            { id: 2, label: '🔥 Modo Desafío', desc: 'Intrusos & Curvas' },
-          ].map((d) => (
-            <button
-              key={d.id}
-              onClick={() => {
-                sounds.sfxPop();
-                setDifficulty(d.id);
-              }}
-              className={`py-1.5 px-1 rounded-xl text-center border-2 transition ${
-                difficulty === d.id
-                  ? 'bg-amber-400 border-amber-500 text-amber-950 font-black scale-102 shadow-sm'
-                  : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200 font-bold'
-              }`}
-            >
-              <div className="text-xs font-extrabold">{d.label}</div>
-              <div className="text-[9px] text-slate-500 font-semibold">{d.desc}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 6. START GAME BUTTON */}
-      <button
-        onClick={() => {
-          sounds.sfxPop();
-          onStartGame();
-        }}
-        className="w-full max-w-md py-4 px-6 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:from-pink-600 hover:to-amber-600 text-white font-black text-2xl shadow-xl shadow-pink-500/30 active:scale-95 transition-transform flex items-center justify-center gap-3 border-b-6 border-rose-700"
-      >
-        <Play className="w-7 h-7 fill-white" />
-        <span>¡A JUGAR AHORA! 🚀</span>
-      </button>
-
-      {/* Camera Capture Modal if active */}
-      {editingPlayerIndex !== null && (
+      {/* Camera / Avatar Picker Modal */}
+      {editingPlayerIndex !== null && players[editingPlayerIndex] && (
         <CameraCaptureModal
           playerName={players[editingPlayerIndex].name}
           initialPhoto={players[editingPlayerIndex].photoUrl}
@@ -540,17 +474,26 @@ export const PlayerSetup: React.FC<Props> = ({
         />
       )}
 
-      {/* Garage Shop Modal if active */}
+      {/* Shop Modal */}
       {isShopOpen && (
         <GarageShopModal
           players={players}
           setPlayers={setPlayers}
-          activePlayerId={shopActivePlayerId}
-          setActivePlayerId={setShopActivePlayerId}
+          activePlayerId={players[0]?.id || 0}
+          setActivePlayerId={() => {}}
           onClose={() => setIsShopOpen(false)}
+        />
+      )}
+
+      {/* Smart Adaptive Learning Modal */}
+      {isSmartModalOpen && (
+        <SmartLearningModal
+          learnedWordIds={learnedWordIds}
+          missedWordIds={missedWordIds}
+          onResetProgress={onResetProgress}
+          onClose={() => setIsSmartModalOpen(false)}
         />
       )}
     </div>
   );
 };
-

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Shield, Star, Award, Zap } from 'lucide-react';
+import { Sparkles, Shield, Star, Award, Zap, Timer } from 'lucide-react';
 import { sounds } from '../audio/soundManager';
 
 interface Props {
@@ -32,11 +32,11 @@ export const InteractiveChallengeModal: React.FC<Props> = ({
 
   // Bubble Challenge State
   const [bubbles, setBubbles] = useState<Bubble[]>(() => [
-    { id: 1, x: 20, y: 30, color: '#ec4899', size: 54, popped: false },
-    { id: 2, x: 70, y: 25, color: '#3b82f6', size: 62, popped: false },
-    { id: 3, x: 45, y: 55, color: '#10b981', size: 58, popped: false },
-    { id: 4, x: 25, y: 75, color: '#f59e0b', size: 50, popped: false },
-    { id: 5, x: 75, y: 70, color: '#8b5cf6', size: 66, popped: false },
+    { id: 1, x: 20, y: 30, color: '#ec4899', size: 60, popped: false },
+    { id: 2, x: 75, y: 25, color: '#3b82f6', size: 70, popped: false },
+    { id: 3, x: 50, y: 55, color: '#10b981', size: 65, popped: false },
+    { id: 4, x: 25, y: 80, color: '#f59e0b', size: 55, popped: false },
+    { id: 5, x: 75, y: 75, color: '#8b5cf6', size: 75, popped: false },
   ]);
 
   // Star Challenge State
@@ -65,13 +65,13 @@ export const InteractiveChallengeModal: React.FC<Props> = ({
     if (won) {
       sounds.sfxWin();
       setTimeout(() => {
-        onComplete(3, true); // +3 stars and grants shield!
-      }, 1200);
+        onComplete(5, true); // +5 stars and grants shield!
+      }, 1500);
     } else {
       sounds.sfxOops();
       setTimeout(() => {
         onComplete(1, false);
-      }, 800);
+      }, 1000);
     }
   };
 
@@ -95,54 +95,55 @@ export const InteractiveChallengeModal: React.FC<Props> = ({
     if (remaining <= 0) {
       finish(true);
     } else {
-      // Jitter star to new position
       setStarPos({
-        x: 18 + Math.random() * 64,
+        x: 20 + Math.random() * 60,
         y: 20 + Math.random() * 60,
       });
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm bg-gradient-to-b from-indigo-900 to-purple-950 rounded-3xl p-6 shadow-2xl border-4 border-yellow-400 text-white flex flex-col items-center overflow-hidden">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-indigo-950/90 backdrop-blur-2xl animate-in fade-in duration-300">
+      <div className="relative w-full max-w-sm bg-white rounded-[3.5rem] p-8 shadow-[0_30px_100px_rgba(0,0,0,0.5)] border-b-[12px] border-slate-200 flex flex-col items-center overflow-hidden animate-in zoom-in-95 duration-500">
+        
+        {/* Animated Background Orbs */}
+        <div className="absolute top-[-10%] left-[-10%] w-32 h-32 bg-pink-500/20 rounded-full blur-3xl animate-pulse-soft" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
+
         {/* Glow Header */}
-        <div className="flex items-center gap-2 mb-2">
-          <Zap className="w-6 h-6 text-yellow-300 fill-yellow-300 animate-bounce" />
-          <h2 className="text-2xl font-black text-yellow-300 tracking-wide uppercase drop-shadow">
-            ¡Reto Exprés!
+        <div className="flex items-center gap-3 mb-4 relative">
+          <Zap className="w-8 h-8 text-yellow-500 fill-yellow-400 animate-bounce" />
+          <h2 className="text-3xl font-black text-indigo-950 tracking-tighter uppercase leading-none">
+            ¡RETO RÁPIDO!
           </h2>
-          <Zap className="w-6 h-6 text-yellow-300 fill-yellow-300 animate-bounce" />
+          <Zap className="w-8 h-8 text-yellow-500 fill-yellow-400 animate-bounce" />
         </div>
 
-        {/* Player identifier */}
-        <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full mb-3">
-          {playerPhoto ? (
-            <img
-              src={playerPhoto}
-              alt={playerName}
-              className="w-6 h-6 rounded-full border border-yellow-300 object-cover"
-            />
-          ) : (
-            <span className="text-base">{playerEmoji}</span>
-          )}
-          <span className="text-xs font-bold text-yellow-200">¡Vamos, {playerName}!</span>
-          <span className="text-xs font-black bg-rose-500 px-2 py-0.5 rounded-full ml-1">
-            ⏱️ {timeLeft}s
-          </span>
+        {/* HUD Info */}
+        <div className="flex items-center justify-between w-full mb-6 gap-2">
+           <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-2xl border-2 border-slate-200">
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm bg-white">
+                {playerPhoto ? <img src={playerPhoto} alt="" className="w-full h-full object-cover" /> : <span className="text-xl flex items-center justify-center h-full">{playerEmoji}</span>}
+              </div>
+              <span className="text-sm font-black text-indigo-900">{playerName}</span>
+           </div>
+           
+           <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border-2 shadow-lg transition-colors ${timeLeft <= 3 ? 'bg-rose-500 border-rose-400 text-white animate-pulse' : 'bg-white border-slate-200 text-slate-800'}`}>
+              <Timer className="w-5 h-5" />
+              <span className="text-xl font-black">{timeLeft}s</span>
+           </div>
         </div>
 
-        {/* Challenge Instructions */}
-        <p className="text-sm font-semibold text-center text-purple-200 mb-4">
+        {/* Instructions */}
+        <p className="text-sm font-bold text-center text-slate-500 mb-6 uppercase tracking-widest leading-none">
           {challengeType === 'bubbles'
-            ? '¡Toca y explota todas las burbujas antes de que termine el tiempo!'
-            : '¡Atrapa la estrella saltarina tocándola 3 veces!'}
+            ? '¡Explota todas las burbujas!'
+            : '¡Atrapa la estrella 3 veces!'}
         </p>
 
-        {/* Challenge Interactive Arena */}
-        <div className="relative w-full h-56 rounded-2xl bg-indigo-950/80 border-2 border-indigo-400/40 overflow-hidden mb-4 select-none touch-none">
+        {/* Interactive Arena */}
+        <div className="relative w-full h-64 rounded-[2.5rem] bg-slate-50 border-4 border-slate-100 overflow-hidden mb-8 shadow-inner select-none touch-none">
           {challengeType === 'bubbles' ? (
-            // Bubbles
             bubbles.map((b) =>
               !b.popped ? (
                 <button
@@ -155,45 +156,58 @@ export const InteractiveChallengeModal: React.FC<Props> = ({
                     height: `${b.size}px`,
                     backgroundColor: b.color,
                   }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white/60 shadow-lg active:scale-75 transition-transform flex items-center justify-center animate-pulse"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow-xl active:scale-75 transition-all flex items-center justify-center btn-squishy"
                 >
-                  <span className="w-3 h-3 rounded-full bg-white/80 absolute top-2 left-2" />
+                  <div className="w-full h-full rounded-full bg-white/20 relative">
+                    <div className="absolute top-2 left-2 w-3 h-3 bg-white/60 rounded-full" />
+                  </div>
                 </button>
               ) : null
             )
           ) : (
-            // Bouncing Star
             <button
               onClick={handleTapStar}
               style={{
                 left: `${starPos.x}%`,
                 top: `${starPos.y}%`,
               }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 text-5xl active:scale-125 transition-all duration-150 drop-shadow-xl animate-bounce"
+              className="absolute -translate-x-1/2 -translate-y-1/2 text-7xl active:scale-150 transition-all duration-150 drop-shadow-2xl animate-float relative z-10"
             >
-              ⭐
+              <Star className="w-16 h-16 text-yellow-500 fill-yellow-400" />
+              {starTapsNeeded < 3 && (
+                <div className="absolute -top-4 -right-4 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-black border-2 border-white shadow-lg">
+                  {starTapsNeeded}
+                </div>
+              )}
             </button>
           )}
 
-          {/* Victory Overlay inside Arena */}
+          {/* Victory UI */}
           {isSuccess && (
-            <div className="absolute inset-0 bg-emerald-500/90 flex flex-col items-center justify-center p-4 animate-in zoom-in-75 duration-200">
-              <Award className="w-16 h-16 text-yellow-300 animate-spin mb-2" />
-              <h3 className="text-2xl font-black text-white">¡CONSEGUIDO!</h3>
-              <p className="text-xs text-emerald-100 font-bold flex items-center gap-1 mt-1">
-                <Shield className="w-4 h-4 fill-sky-300 text-sky-300" /> ¡Escudo activado + 3⭐!
-              </p>
+            <div className="absolute inset-0 bg-emerald-500 flex flex-col items-center justify-center p-6 animate-in zoom-in-50 duration-300 z-50">
+              <div className="bg-white p-4 rounded-full mb-4 shadow-2xl animate-bounce">
+                <Award className="w-16 h-16 text-emerald-600" />
+              </div>
+              <h3 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">¡LO LOGRASTE!</h3>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full text-white font-black text-sm">
+                  <Star className="w-4 h-4 fill-white" /> +5
+                </div>
+                <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full text-white font-black text-sm">
+                  <Shield className="w-4 h-4 fill-white" /> ESCUDO
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Reward Reminder */}
-        <div className="w-full flex items-center justify-around text-xs font-bold bg-white/10 p-2.5 rounded-xl">
-          <div className="flex items-center gap-1 text-sky-300">
-            <Shield className="w-4 h-4" /> 1 Escudo Protector
+        {/* Legend */}
+        <div className="w-full grid grid-cols-2 gap-3">
+          <div className="flex items-center justify-center gap-2 bg-sky-50 p-3 rounded-2xl border-2 border-sky-100 text-sky-700 font-black text-xs uppercase">
+            <Shield className="w-4 h-4" /> Escudo Mágico
           </div>
-          <div className="flex items-center gap-1 text-yellow-300">
-            <Star className="w-4 h-4 fill-yellow-300" /> +3 Estrellas
+          <div className="flex items-center justify-center gap-2 bg-yellow-50 p-3 rounded-2xl border-2 border-yellow-100 text-yellow-700 font-black text-xs uppercase">
+            <Star className="w-4 h-4 fill-yellow-400" /> +5 Estrellas
           </div>
         </div>
       </div>

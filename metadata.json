@@ -1,6 +1,6 @@
 {
-  "name": "Camino Bombástico Deluxe",
-  "description": "Juego infantil interactivo de destreza con fotos personalizadas de los jugadores, mundos temáticos dinámicos, retos interactivos y efectos alegres.",
+  "name": "Mundo Mágico",
+  "description": "Una aventura de aprendizaje por turnos para niños, con retos en español, flamenco, árabe y francés.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

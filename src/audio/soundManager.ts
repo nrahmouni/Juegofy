@@ -1,4 +1,12 @@
-// Sound Manager using Web Audio API for rich, kid-friendly sound effects & chiptune background music
+// Sound Manager using Web Audio API for rich, kid-friendly sound effects, chiptune music & 100% synchronized voice synthesis
+
+export interface SpeechItem {
+  text: string;
+  lang?: string;
+  pauseAfterMs?: number;
+}
+
+type SpeakingListener = (isSpeaking: boolean) => void;
 
 class SoundManager {
   private ctx: AudioContext | null = null;
@@ -7,6 +15,47 @@ class SoundManager {
   private bgmInterval: any = null;
   private currentStep: number = 0;
   private currentTheme: string = 'candy';
+  private cachedVoices: SpeechSynthesisVoice[] = [];
+  private isSpeakingNow: boolean = false;
+  private speechToken: number = 0;
+  private speakingListeners: Set<SpeakingListener> = new Set();
+
+  constructor() {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const loadVoices = () => {
+        try {
+          const list = window.speechSynthesis.getVoices();
+          if (list && list.length > 0) {
+            this.cachedVoices = list;
+          }
+        } catch {}
+      };
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }
+
+  public subscribeSpeaking(listener: SpeakingListener): () => void {
+    this.speakingListeners.add(listener);
+    listener(this.isSpeakingNow);
+    return () => {
+      this.speakingListeners.delete(listener);
+    };
+  }
+
+  private setSpeakingState(speaking: boolean) {
+    if (this.isSpeakingNow === speaking) return;
+    this.isSpeakingNow = speaking;
+    this.speakingListeners.forEach((cb) => {
+      try {
+        cb(speaking);
+      } catch {}
+    });
+  }
+
+  public getIsSpeaking(): boolean {
+    return this.isSpeakingNow;
+  }
 
   private initCtx() {
     if (!this.ctx) {
@@ -24,8 +73,19 @@ class SoundManager {
     this.isMuted = muted;
     if (muted) {
       this.stopBGM();
+      this.cancelSpeech();
     } else if (this.isMusicEnabled) {
       this.startBGM(this.currentTheme);
+    }
+  }
+
+  public cancelSpeech() {
+    this.speechToken++;
+    this.setSpeakingState(false);
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
   }
 
@@ -52,8 +112,14 @@ class SoundManager {
     return this.isMusicEnabled;
   }
 
-  // Play a simple synthesized oscillator tone
-  private playTone(freq: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.15, endFreq?: number) {
+  // Play a synthesized oscillator tone
+  private playTone(
+    freq: number,
+    duration: number,
+    type: OscillatorType = 'sine',
+    volume: number = 0.15,
+    endFreq?: number
+  ) {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx) return;
@@ -77,12 +143,10 @@ class SoundManager {
 
       osc.start(now);
       osc.stop(now + duration);
-    } catch {
-      // AudioContext could be blocked by autoplay policies
-    }
+    } catch {}
   }
 
-  // White noise burst for explosions & pops
+  // White noise burst for explosions, splashes & pops
   private playNoise(duration: number, cutoff: number, volume: number = 0.2) {
     if (this.isMuted) return;
     this.initCtx();
@@ -120,12 +184,50 @@ class SoundManager {
 
   // --- Sound Effects for Kids ---
 
-  // Pop sound (menus, bubbles, buttons)
   public sfxPop(pitch: number = 1) {
-    this.playTone(450 * pitch, 0.08, 'sine', 0.12, 750 * pitch);
+    this.playTone(450 * pitch, 0.08, 'sine', 0.14, 780 * pitch);
   }
 
-  // Camera Shutter Click
+  public sfxWhoosh() {
+    this.playNoise(0.14, 2400, 0.18);
+    this.playTone(280, 0.14, 'sine', 0.12, 680);
+  }
+
+  public sfxChomp() {
+    this.playNoise(0.09, 1600, 0.28);
+    this.playTone(260, 0.1, 'triangle', 0.22, 120);
+    setTimeout(() => {
+      this.playNoise(0.08, 1900, 0.24);
+      this.playTone(320, 0.1, 'triangle', 0.2, 160);
+    }, 110);
+  }
+
+  public sfxSizzle() {
+    this.playNoise(0.24, 3200, 0.18);
+    this.playTone(520, 0.12, 'sine', 0.12, 880);
+  }
+
+  public sfxCatch() {
+    this.playTone(480, 0.09, 'sine', 0.18, 920);
+    setTimeout(() => {
+      this.playTone(720, 0.12, 'triangle', 0.16, 1180);
+    }, 55);
+  }
+
+  public sfxPinataHit() {
+    this.playNoise(0.16, 2800, 0.26);
+    this.playTone(340, 0.12, 'triangle', 0.22, 760);
+  }
+
+  public sfxMagic() {
+    const sparkle = [587.33, 783.99, 987.77, 1174.66, 1567.98];
+    sparkle.forEach((f, idx) => {
+      setTimeout(() => {
+        this.playTone(f, 0.14, 'sine', 0.13, f * 1.15);
+      }, idx * 45);
+    });
+  }
+
   public sfxCameraClick() {
     this.playNoise(0.04, 3000, 0.25);
     setTimeout(() => {
@@ -134,7 +236,6 @@ class SoundManager {
     }, 60);
   }
 
-  // Countdown Beep (3, 2, 1)
   public sfxCountdown(final: boolean = false) {
     if (final) {
       this.playTone(880, 0.25, 'triangle', 0.22, 1100);
@@ -143,18 +244,16 @@ class SoundManager {
     }
   }
 
-  // Star collection sound with progressive pitch
   public sfxStar(combo: number = 1) {
     const base = 523.25; // C5
     const multiplier = Math.pow(1.12, Math.min(combo, 12));
     const f1 = base * multiplier;
-    this.playTone(f1, 0.14, 'sine', 0.15, f1 * 1.4);
+    this.playTone(f1, 0.14, 'sine', 0.16, f1 * 1.4);
     setTimeout(() => {
-      this.playTone(f1 * 1.5, 0.2, 'triangle', 0.12);
+      this.playTone(f1 * 1.5, 0.2, 'triangle', 0.13);
     }, 60);
   }
 
-  // Powerup Pickup (Shield, Magnet, Mystery Box)
   public sfxPowerup() {
     const notes = [440, 554, 659, 880];
     notes.forEach((f, idx) => {
@@ -164,25 +263,21 @@ class SoundManager {
     });
   }
 
-  // Cute Boing sound (trampolines, bouncy turns)
   public sfxBoing() {
     this.playTone(220, 0.28, 'sine', 0.18, 550);
   }
 
-  // Bubble Pop
   public sfxBubblePop() {
     const f = 600 + Math.random() * 400;
-    this.playTone(f, 0.06, 'sine', 0.15, f * 1.6);
+    this.playTone(f, 0.06, 'sine', 0.16, f * 1.6);
   }
 
-  // Comic Bomb explosion (soft cartoon boom)
   public sfxBoom() {
     this.playNoise(0.5, 2000, 0.4);
     this.playTone(130, 0.45, 'sawtooth', 0.25, 35);
     this.playTone(80, 0.5, 'sine', 0.3, 30);
   }
 
-  // Bee / Obstacle buzz
   public sfxBee() {
     for (let i = 0; i < 5; i++) {
       setTimeout(() => {
@@ -191,12 +286,17 @@ class SoundManager {
     }
   }
 
-  // Proximity warning (soft chirp when dangerously close to bomb)
   public sfxWarning() {
     this.playTone(600, 0.05, 'triangle', 0.05);
   }
 
-  // Oops / Fall off edge
+  public sfxError() {
+    this.playTone(280, 0.15, 'triangle', 0.16, 190);
+    setTimeout(() => {
+      this.playTone(210, 0.2, 'triangle', 0.16, 150);
+    }, 110);
+  }
+
   public sfxOops() {
     const notes = [440, 370, 311, 261];
     notes.forEach((f, idx) => {
@@ -206,7 +306,6 @@ class SoundManager {
     });
   }
 
-  // Combo chime effect with escaled melody
   public sfxCombo(comboLevel: number = 2) {
     const scale = [523.25, 659.25, 783.99, 1046.5, 1318.5];
     const notesToPlay = Math.min(comboLevel + 2, scale.length);
@@ -217,7 +316,6 @@ class SoundManager {
     }
   }
 
-  // Audience cheering / applause synthesis
   public sfxApplause() {
     for (let i = 0; i < 12; i++) {
       setTimeout(() => {
@@ -227,65 +325,55 @@ class SoundManager {
     }
   }
 
-  // Funny animal squeak
   public sfxSqueak() {
     this.playTone(900, 0.07, 'sine', 0.16, 1600);
   }
 
-  // Water splash for frog
   public sfxSplash() {
     this.playNoise(0.18, 1200, 0.22);
     this.playTone(300, 0.12, 'sine', 0.15, 150);
   }
 
-  // Slingshot stretch tone (rising pitch pitch bend as drag distance grows)
   public sfxSlingshotStretch(distRatio: number = 0.5) {
     const f = 180 + distRatio * 320;
     this.playTone(f, 0.05, 'sine', 0.1, f + 20);
   }
 
-  // Slingshot release snap
   public sfxSlingshotRelease() {
     this.playTone(600, 0.08, 'sawtooth', 0.22, 180);
     this.playNoise(0.06, 2500, 0.2);
   }
 
-  // Pinball Bumper chime
   public sfxPinballBumper() {
     this.playTone(880, 0.12, 'triangle', 0.25, 1320);
     this.playTone(440, 0.1, 'sine', 0.15);
   }
 
-  // Pinball Flipper thud
   public sfxPinballFlipper() {
     this.playTone(180, 0.07, 'triangle', 0.2, 350);
   }
 
-  // Nitro Boost acceleration roar
   public sfxNitro() {
     this.playTone(200, 0.4, 'sawtooth', 0.2, 900);
     this.playNoise(0.3, 3500, 0.15);
   }
 
-  // Golden Coin collect chime
   public sfxCoin() {
     this.playTone(987.77, 0.08, 'sine', 0.2, 1318.51);
   }
 
-  // Slow motion impact effect
   public sfxSlowMo() {
     this.playTone(350, 0.35, 'sine', 0.2, 90);
   }
 
-  // Win fanfare (arpeggiated triumphant kid victory song)
   public sfxWin() {
     const melody = [
       { f: 523.25, d: 0.15 }, // C5
       { f: 659.25, d: 0.15 }, // E5
       { f: 783.99, d: 0.15 }, // G5
       { f: 1046.5, d: 0.28 }, // C6
-      { f: 880.0, d: 0.15 },  // A5
-      { f: 1046.5, d: 0.45 }  // C6
+      { f: 880.0, d: 0.15 }, // A5
+      { f: 1046.5, d: 0.45 }, // C6
     ];
     let time = 0;
     melody.forEach((note) => {
@@ -298,8 +386,6 @@ class SoundManager {
     this.sfxApplause();
   }
 
-  // --- Background Music System ---
-
   public startBGM(theme: string = 'candy') {
     this.currentTheme = theme;
     if (this.bgmInterval) {
@@ -311,7 +397,6 @@ class SoundManager {
     this.initCtx();
     this.currentStep = 0;
 
-    // Theme-based melodic lines (pentatonic & joyful scales)
     const candyMelody = [523, 659, 784, 659, 880, 784, 659, 587, 523, 659, 784, 880, 1046, 784, 659, 587];
     const candyBass = [261, 261, 329, 329, 392, 392, 349, 349];
 
@@ -340,15 +425,15 @@ class SoundManager {
 
     this.bgmInterval = setInterval(() => {
       if (!this.isMusicEnabled || this.isMuted || document.hidden) return;
+      // Duck BGM volume automatically while voice synthesis is speaking so voice is crystal clear!
+      const volScale = this.isSpeakingNow ? 0.2 : 1.0;
       const idx = this.currentStep;
       const note = melody[idx % melody.length];
       const bassNote = bass[(idx >> 1) % bass.length];
 
-      // Soft melodic lead
-      this.playTone(note, 0.16, 'triangle', 0.038);
-      // Soft bass note on every other step
+      this.playTone(note, 0.16, 'triangle', 0.03 * volScale);
       if (idx % 2 === 0) {
-        this.playTone(bassNote, 0.28, 'sine', 0.05);
+        this.playTone(bassNote, 0.28, 'sine', 0.04 * volScale);
       }
       this.currentStep++;
     }, 240);
@@ -359,6 +444,175 @@ class SoundManager {
       clearInterval(this.bgmInterval);
       this.bgmInterval = null;
     }
+  }
+
+  // Pick the highest quality, most natural-sounding voice for the requested language
+  private pickBestVoice(lang: string): SpeechSynthesisVoice | null {
+    const voices =
+      this.cachedVoices.length > 0
+        ? this.cachedVoices
+        : typeof window !== 'undefined' && 'speechSynthesis' in window
+        ? window.speechSynthesis.getVoices()
+        : [];
+
+    if (!voices || voices.length === 0) return null;
+
+    const targetLower = lang.toLowerCase();
+    const langPrefix = targetLower.split('-')[0];
+
+    const matching = voices.filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith(langPrefix));
+    if (matching.length === 0) return null;
+
+    const scoreVoice = (v: SpeechSynthesisVoice): number => {
+      let score = 0;
+      const vLang = v.lang.toLowerCase().replace('_', '-');
+      const name = v.name.toLowerCase();
+
+      if (vLang === targetLower) score += 25;
+      if (name.includes('natural') || name.includes('online')) score += 40;
+      if (name.includes('google')) score += 35;
+      if (name.includes('premium') || name.includes('enhanced') || name.includes('siri')) score += 30;
+      if (
+        name.includes('monica') ||
+        name.includes('paulina') ||
+        name.includes('helena') ||
+        name.includes('sabina') ||
+        name.includes('luciana') ||
+        name.includes('elvira') ||
+        name.includes('amelie') ||
+        name.includes('thomas') ||
+        name.includes('denise') ||
+        name.includes('colette') ||
+        name.includes('xander') ||
+        name.includes('ellen') ||
+        name.includes('laila') ||
+        name.includes('mariam') ||
+        name.includes('maged') ||
+        name.includes('tarik')
+      ) {
+        score += 25;
+      }
+      if (!v.localService) score += 10;
+      return score;
+    };
+
+    const sorted = [...matching].sort((a, b) => scoreVoice(b) - scoreVoice(a));
+    return sorted[0] || matching[0];
+  }
+
+  private speakSingleRaw(text: string, lang: string, token: number): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.isMuted || !text || token !== this.speechToken) {
+        resolve();
+        return;
+      }
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        resolve();
+        return;
+      }
+
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(fallbackTimer);
+        if (token === this.speechToken) {
+          this.setSpeakingState(false);
+        }
+        resolve();
+      };
+
+      // Estimated duration fallback so if mobile browser TTS drops onend event, gameplay never hangs
+      const estimatedMs = Math.max(850, Math.min(3400, text.trim().length * 78 + 420));
+      const fallbackTimer = setTimeout(finish, estimatedMs);
+
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+
+        const bestVoice = this.pickBestVoice(lang);
+        if (bestVoice) {
+          utterance.voice = bestVoice;
+        }
+
+        const isSpanish = lang.toLowerCase().startsWith('es');
+        const wordCount = text.trim().split(/\s+/).length;
+        utterance.rate = isSpanish ? (wordCount > 3 ? 0.96 : 1.0) : wordCount > 2 ? 0.88 : 0.92;
+        utterance.pitch = 1.05;
+        utterance.volume = 1.0;
+
+        utterance.onstart = () => {
+          if (token === this.speechToken) {
+            this.setSpeakingState(true);
+          }
+        };
+        utterance.onend = finish;
+        utterance.onerror = finish;
+
+        this.setSpeakingState(true);
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        finish();
+      }
+    });
+  }
+
+  /**
+   * Speaks a single utterance and resolves when the voice finishes speaking.
+   */
+  public async speakAsync(
+    text: string,
+    lang: string = 'es-ES',
+    interrupt: boolean = true
+  ): Promise<void> {
+    if (this.isMuted || !text) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const myToken = interrupt ? ++this.speechToken : this.speechToken;
+    if (interrupt) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+
+    await this.speakSingleRaw(text, lang, myToken);
+  }
+
+  /**
+   * Speaks a sequence of utterances one after another (e.g., first the target word in French/Arabic/Flemish,
+   * then the personalized praise in Spanish) without cutting off any word!
+   * Resolves `true` if completed uninterrupted, or `false` if superseded by a newer action.
+   */
+  public async speakSequence(items: SpeechItem[], interrupt: boolean = true): Promise<boolean> {
+    if (this.isMuted || items.length === 0) return true;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return true;
+
+    const myToken = interrupt ? ++this.speechToken : this.speechToken;
+    if (interrupt) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      if (myToken !== this.speechToken || this.isMuted) {
+        return false;
+      }
+      const item = items[i];
+      if (!item.text) continue;
+      await this.speakSingleRaw(item.text, item.lang || 'es-ES', myToken);
+      if (myToken !== this.speechToken) return false;
+      if (item.pauseAfterMs && item.pauseAfterMs > 0) {
+        await new Promise((r) => setTimeout(r, item.pauseAfterMs));
+      }
+    }
+
+    return myToken === this.speechToken;
+  }
+
+  // Backward-compatible fire-and-forget wrapper
+  public speak(text: string, lang: string = 'es-ES', interrupt: boolean = true) {
+    void this.speakAsync(text, lang, interrupt);
   }
 }
 
