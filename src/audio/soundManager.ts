@@ -409,6 +409,9 @@ class SoundManager {
     const oceanMelody = [493, 659, 784, 659, 880, 784, 659, 587, 493, 587, 659, 784, 987, 784, 659, 587];
     const oceanBass = [246, 246, 329, 329, 392, 392, 293, 246];
 
+    const volcanoMelody = [523, 622, 698, 784, 698, 622, 523, 466, 523, 622, 784, 932, 784, 698, 622, 523];
+    const volcanoBass = [196, 196, 233, 233, 262, 262, 220, 196];
+
     let melody = candyMelody;
     let bass = candyBass;
 
@@ -421,6 +424,9 @@ class SoundManager {
     } else if (theme === 'ocean') {
       melody = oceanMelody;
       bass = oceanBass;
+    } else if (theme === 'volcano') {
+      melody = volcanoMelody;
+      bass = volcanoBass;
     }
 
     this.bgmInterval = setInterval(() => {
@@ -613,6 +619,45 @@ class SoundManager {
   // Backward-compatible fire-and-forget wrapper
   public speak(text: string, lang: string = 'es-ES', interrupt: boolean = true) {
     void this.speakAsync(text, lang, interrupt);
+  }
+
+  /**
+   * Resolves when the current utterance finishes (or immediately if not speaking).
+   * Use this to keep gameplay perfectly in sync with voice.
+   */
+  public waitUntilNotSpeaking(timeoutMs: number = 5000): Promise<void> {
+    if (!this.isSpeakingNow) return Promise.resolve();
+    return new Promise((resolve) => {
+      const unsub = this.subscribeSpeaking((speaking) => {
+        if (!speaking) {
+          unsub();
+          resolve();
+        }
+      });
+      // Safety timeout so the game never hangs forever on broken TTS
+      setTimeout(() => {
+        unsub();
+        this.setSpeakingState(false);
+        resolve();
+      }, Math.max(800, timeoutMs));
+    });
+  }
+
+  /** Light haptic feedback for kids (supported on most modern mobile browsers). */
+  public haptic(pattern: number | number[] = 25) {
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(pattern);
+      }
+    } catch {}
+  }
+
+  public hapticSuccess() {
+    this.haptic([18, 40, 28]);
+  }
+
+  public hapticError() {
+    this.haptic([40, 30, 40]);
   }
 }
 

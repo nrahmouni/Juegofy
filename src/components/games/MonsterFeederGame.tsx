@@ -107,9 +107,11 @@ export const MonsterFeederGame: React.FC<Props> = ({
       setDraggedSnack(null);
       setDragPos(null);
 
-      setTimeout(() => {
-        sounds.speak(picked.audioText, picked.audioLang);
-      }, 260);
+      // Speak target and wait so the child hears the full word
+      void (async () => {
+        await new Promise((r) => setTimeout(r, 200));
+        await sounds.speakAsync(picked.audioText, picked.audioLang, true);
+      })();
     },
     [selectedLevel, learnedWordIds, missedWordIds, optionsCount]
   );
@@ -119,7 +121,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
     setupRound(0, langKey);
   }, [langKey, setupRound]);
 
-  const evaluateSnackChoice = (snack: LearningItem) => {
+  const evaluateSnackChoice = async (snack: LearningItem) => {
     if (!target || monsterState === 'eating') return;
 
     if (snack.id === target.id) {
@@ -127,6 +129,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
       setMonsterState('eating');
       sounds.sfxChomp();
       sounds.sfxMagic();
+      sounds.hapticSuccess();
       onMarkWordLearned(target.id);
 
       const nextCombo = combo + 1;
@@ -151,23 +154,28 @@ export const MonsterFeederGame: React.FC<Props> = ({
       setWordsLearned(nextWords);
       setProgressPercent((nextRound / totalRounds) * 100);
 
-      const praise = getPersonalizedPraise(player.name, nextRound >= totalRounds);
+      const isFinal = nextRound >= totalRounds;
+      const praise = getPersonalizedPraise(player.name, isFinal);
       setPraiseBanner(praise);
 
-      setTimeout(() => {
-        sounds.speak(praise, 'es-ES', false);
-      }, 650);
+      // CRITICAL: wait until word + praise finish speaking before advancing
+      await sounds.speakSequence(
+        [
+          { text: snack.audioText, lang: snack.audioLang, pauseAfterMs: 100 },
+          { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
+        ],
+        true
+      );
 
-      setTimeout(() => {
-        setPraiseBanner(null);
-        if (nextRound >= totalRounds) {
-          onWin(1600 + selectedLevel * 250 + nextCombo * 80, nextStars, nextWords);
-        } else {
-          setupRound(nextRound, langKey);
-        }
-      }, 1700);
+      setPraiseBanner(null);
+      if (isFinal) {
+        onWin(1600 + selectedLevel * 250 + nextCombo * 80, nextStars, nextWords);
+      } else {
+        setupRound(nextRound, langKey);
+      }
     } else {
       sounds.sfxError();
+      sounds.hapticError();
       setCombo(0);
       setMonsterState('yuck');
       setWrongSnackId(snack.id);
@@ -175,6 +183,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
       if (onMarkWordMissed) {
         onMarkWordMissed(target.id);
       }
+      void sounds.speakAsync(snack.es || snack.audioText, 'es-ES', true);
       setTimeout(() => {
         setMonsterState('hungry');
         setWrongSnackId(null);
@@ -187,7 +196,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
     if (monsterState === 'eating') return;
     // Immediately speak the touched item aloud!
     sounds.sfxPop(1.1);
-    sounds.speak(snack.audioText, snack.audioLang);
+    void sounds.speakAsync(snack.audioText, snack.audioLang, true);
 
     setDraggedSnack(snack);
     setDragPos({ x: e.clientX, y: e.clientY });
@@ -299,7 +308,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
           </div>
 
           <button
-            onClick={() => sounds.speak(target.audioText, target.audioLang)}
+            onClick={() => void sounds.speakAsync(target.audioText, target.audioLang, true)}
             className="p-3.5 rounded-2xl bg-pink-500 text-white shadow-lg border-b-4 border-pink-700 btn-squishy shrink-0"
             aria-label="Escuchar lo que pide el monstruo"
           >

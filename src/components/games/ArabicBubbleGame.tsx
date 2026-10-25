@@ -124,7 +124,7 @@ export const ArabicBubbleGame: React.FC<Props> = ({
       isTransitioningRef.current = true;
       sounds.sfxBubblePop();
       sounds.sfxMagic();
-      sounds.speak(currentChallenge.audioText, currentChallenge.audioLang);
+      sounds.hapticSuccess();
 
       const nextCombo = combo + 1;
       setCombo(nextCombo);
@@ -145,10 +145,6 @@ export const ArabicBubbleGame: React.FC<Props> = ({
       const praise = getPersonalizedPraise(player.name, isFinalWin);
       setPraiseBanner(praise);
 
-      setTimeout(() => {
-        sounds.speak(praise, 'es-ES', false);
-      }, 650);
-
       const nextUsed = [...sessionUsedIds, currentChallenge.id];
       starsRef.current += 2;
       wordsRef.current += 1;
@@ -160,21 +156,26 @@ export const ArabicBubbleGame: React.FC<Props> = ({
       setProgressPercent(Math.round((nextCorrect / targetCorrect) * 100));
       onMarkWordLearned(currentChallenge.id);
 
-      if (isFinalWin) {
-        setTimeout(() => {
-          setPraiseBanner(null);
+      void (async () => {
+        await sounds.speakSequence(
+          [
+            { text: currentChallenge.audioText, lang: currentChallenge.audioLang, pauseAfterMs: 100 },
+            { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
+          ],
+          true
+        );
+        setPraiseBanner(null);
+        if (isFinalWin) {
           setGameState('done');
           onWin(nextCorrect * 330 + nextCombo * 50, starsRef.current, wordsRef.current);
-        }, 1600);
-      } else {
-        setTimeout(() => {
-          setPraiseBanner(null);
+        } else {
           spawnRound(nextUsed);
-        }, 1600);
-      }
+        }
+      })();
     } else {
       sounds.sfxError();
-      sounds.speak(bubble.item.es, 'es-ES');
+      sounds.hapticError();
+      void sounds.speakAsync(bubble.item.es, 'es-ES', true);
       setCombo(0);
       setShowHint(true);
       if (onMarkWordMissed) {

@@ -95,9 +95,10 @@ export const RocketRaceGame: React.FC<Props> = ({
       setWrongPodId(null);
       setMistakesOnStop(0);
 
-      setTimeout(() => {
-        sounds.speak(`¡Pilota hacia: ${picked.es}!`, 'es-ES');
-      }, 260);
+      void (async () => {
+        await new Promise((r) => setTimeout(r, 200));
+        await sounds.speakAsync(`¡Pilota hacia: ${picked.es}!`, 'es-ES', true);
+      })();
     },
     [items, selectedLevel, learnedWordIds, missedWordIds]
   );
@@ -107,20 +108,19 @@ export const RocketRaceGame: React.FC<Props> = ({
     setupStop(0);
   }, [setupStop]);
 
-  const handleSelectLane = (laneIndex: number, pod: LearningItem) => {
+  const handleSelectLane = async (laneIndex: number, pod: LearningItem) => {
     if (!target || isBoosting) return;
 
     // Move the rocket to the selected lane & fire laser beam!
     setRocketLane(laneIndex);
     setLaserActive(true);
     sounds.sfxWhoosh();
-    // Immediately pronounce the selected orb aloud!
-    sounds.speak(pod.audioText, pod.audioLang);
 
     if (pod.id === target.id) {
       setIsBoosting(true);
       sounds.sfxNitro();
       sounds.sfxMagic();
+      sounds.hapticSuccess();
       onMarkWordLearned(target.id);
 
       confetti({
@@ -140,28 +140,34 @@ export const RocketRaceGame: React.FC<Props> = ({
       setWordsLearned(nextWords);
       setProgressPercent((nextStop / totalStops) * 100);
 
-      const praise = getPersonalizedPraise(player.name, nextStop >= totalStops);
+      const isFinal = nextStop >= totalStops;
+      const praise = getPersonalizedPraise(player.name, isFinal);
       setPraiseBanner(praise);
 
-      setTimeout(() => {
-        sounds.speak(praise, 'es-ES', false);
-      }, 650);
+      // Wait for full speech before advancing
+      await sounds.speakSequence(
+        [
+          { text: pod.audioText, lang: pod.audioLang, pauseAfterMs: 100 },
+          { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
+        ],
+        true
+      );
 
-      setTimeout(() => {
-        setPraiseBanner(null);
-        if (nextStop >= totalStops) {
-          onWin(1750 + selectedLevel * 250, nextStars, nextWords);
-        } else {
-          setupStop(nextStop);
-        }
-      }, 1750);
+      setPraiseBanner(null);
+      if (isFinal) {
+        onWin(1750 + selectedLevel * 250, nextStars, nextWords);
+      } else {
+        setupStop(nextStop);
+      }
     } else {
       sounds.sfxError();
+      sounds.hapticError();
       setWrongPodId(pod.id);
       setMistakesOnStop((m) => m + 1);
       if (onMarkWordMissed) {
         onMarkWordMissed(target.id);
       }
+      void sounds.speakAsync(pod.es || pod.audioText, 'es-ES', true);
       setTimeout(() => {
         setWrongPodId(null);
         setLaserActive(false);
@@ -236,7 +242,7 @@ export const RocketRaceGame: React.FC<Props> = ({
           </div>
 
           <button
-            onClick={() => sounds.speak(target.audioText, target.audioLang)}
+            onClick={() => void sounds.speakAsync(target.audioText, target.audioLang, true)}
             className="p-3.5 rounded-2xl bg-cyan-500 text-white shadow-lg border-b-4 border-cyan-700 btn-squishy shrink-0"
             aria-label="Escuchar misión espacial"
           >

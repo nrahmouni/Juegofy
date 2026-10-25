@@ -19,6 +19,10 @@ import { FrenchChefGame } from './games/FrenchChefGame';
 import { SafariPhotoGame } from './games/SafariPhotoGame';
 import { MonsterFeederGame } from './games/MonsterFeederGame';
 import { RocketRaceGame } from './games/RocketRaceGame';
+import { SlingshotGame } from './games/SlingshotGame';
+import { CatcherBasketGame } from './games/CatcherBasketGame';
+import { DragMatchGame } from './games/DragMatchGame';
+import { SentenceBuilderGame } from './games/SentenceBuilderGame';
 import { X, Volume2, VolumeX, Star, BookOpen, Check } from 'lucide-react';
 
 interface Props {
@@ -351,6 +355,70 @@ export const GameCanvas: React.FC<Props> = ({
             <SafariPhotoGame
               player={player}
               items={SPANISH_VOCAB_ITEMS}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+          {gameMode === 'slingshot_magic' && (
+            <SlingshotGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+          {gameMode === 'crazy_catcher' && (
+            <CatcherBasketGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+          {gameMode === 'drag_match' && (
+            <DragMatchGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+          {gameMode === 'sentence_builder' && (
+            <SentenceBuilderGame
+              player={player}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}

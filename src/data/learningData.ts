@@ -24,7 +24,9 @@ export interface GameModeConfig {
     | 'monster_feeder'
     | 'rocket_race'
     | 'slingshot_magic'
-    | 'crazy_catcher';
+    | 'crazy_catcher'
+    | 'drag_match'
+    | 'sentence_builder';
   title: string;
   shortTitle: string;
   badge: string;
@@ -299,6 +301,32 @@ export const GAME_MODES: GameModeConfig[] = [
     tagline: '¡Haz fotos en la selva mágica!',
     color: '#f97316',
     bgGradient: 'from-orange-500 to-amber-500',
+    hasSpeech: true,
+  },
+  {
+    id: 'drag_match',
+    title: 'Empareja Mágico',
+    shortTitle: 'Empareja',
+    badge: '🧲 Arrastra y Une',
+    mechanicBadge: '✨ Drag & Match',
+    icon: '🧲',
+    description: '¡Arrastra cada palabra hasta su dibujo mágico! Si aciertas, ¡confeti y estrellas!',
+    tagline: '¡Une palabra y dibujo arrastrando!',
+    color: '#a855f7',
+    bgGradient: 'from-violet-500 to-fuchsia-600',
+    hasSpeech: true,
+  },
+  {
+    id: 'sentence_builder',
+    title: 'Constructor de Frases',
+    shortTitle: 'Frases',
+    badge: '🧱 Arrastra Palabras',
+    mechanicBadge: '📝 Ordena la Frase',
+    icon: '🧱',
+    description: '¡Arrastra las palabras en el orden correcto para formar la frase mágica! Ideal para niveles altos.',
+    tagline: '¡Construye frases arrastrando!',
+    color: '#0ea5e9',
+    bgGradient: 'from-sky-500 to-indigo-600',
     hasSpeech: true,
   },
 ];
