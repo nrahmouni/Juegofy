@@ -335,45 +335,70 @@ export const PlayerSetup: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* 8 Mini-Games Grid (2 cols on mobile, 4 cols on desktop) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 overflow-y-auto py-0.5 flex-1 content-center">
-          {GAME_MODES.map((mode) => {
-            const isSelected = mode.id === gameMode;
-            return (
-              <button
-                key={mode.id}
-                onClick={() => handleSelectGame(mode.id, mode.title)}
-                className={`relative rounded-2xl sm:rounded-3xl p-2 sm:p-3 text-left transition-all flex items-center sm:flex-col sm:items-start gap-2 border-b-4 sm:border-b-6 btn-squishy ${
-                  isSelected
-                    ? 'bg-white border-yellow-400 ring-3 ring-yellow-400/80 shadow-xl scale-[1.02]'
-                    : 'bg-white/90 border-slate-300 opacity-85 hover:opacity-100'
-                }`}
-              >
-                <div className="flex items-center gap-2 w-full">
-                  <div
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner"
-                    style={{ backgroundColor: `${mode.color}20` }}
-                  >
+        {/* Premium horizontal game carousel (slide) */}
+        <div className="flex-1 min-h-0 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between px-1">
+            <div className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-white/70">
+              Desliza y elige tu aventura
+            </div>
+            <div className="text-[10px] font-bold text-white/50">
+              {GAME_MODES.findIndex((m) => m.id === gameMode) + 1}/{GAME_MODES.length}
+            </div>
+          </div>
+          <div
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 pt-1 px-1 -mx-1"
+            style={{ WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory' }}
+          >
+            {GAME_MODES.map((mode) => {
+              const isSelected = mode.id === gameMode;
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => handleSelectGame(mode.id, mode.title)}
+                  className={`snap-center shrink-0 w-[78%] sm:w-[240px] max-w-[280px] rounded-[1.75rem] p-4 text-left transition-all border-b-8 btn-squishy relative overflow-hidden ${
+                    isSelected
+                      ? 'ring-4 ring-yellow-300 scale-[1.03] shadow-2xl border-yellow-400'
+                      : 'opacity-90 hover:opacity-100 border-black/20'
+                  }`}
+                  style={{
+                    background: `linear-gradient(145deg, ${mode.color} 0%, ${mode.color}cc 55%, #0f172a 140%)`,
+                  }}
+                >
+                  <div className="absolute -right-4 -top-4 text-7xl opacity-20 pointer-events-none">
                     {mode.icon}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div
-                      className="text-[9px] font-black uppercase tracking-tight truncate"
-                      style={{ color: mode.color }}
-                    >
-                      {mode.badge}
+                  <div className="relative z-10 flex flex-col gap-2 min-h-[132px]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center text-3xl shadow-inner border border-white/30">
+                        {mode.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-black uppercase tracking-wide text-white/80 truncate">
+                          {mode.badge}
+                        </div>
+                        <div className="text-lg font-black text-white leading-tight drop-shadow">
+                          {mode.title}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm font-black text-slate-900 uppercase leading-tight truncate">
-                      {mode.title}
-                    </div>
-                    <div className="text-[9px] font-bold text-slate-500 truncate">
-                      {mode.mechanicBadge}
+                    <p className="text-[11px] font-bold text-white/90 leading-snug line-clamp-2">
+                      {mode.tagline}
+                    </p>
+                    <div className="mt-auto flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase bg-white/20 text-white px-2 py-1 rounded-lg">
+                        {mode.mechanicBadge}
+                      </span>
+                      {isSelected && (
+                        <span className="text-[10px] font-black bg-yellow-300 text-slate-900 px-2 py-1 rounded-lg">
+                          ✓ ELEGIDO
+                        </span>
+                      )}
                     </div>
                   </div>
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

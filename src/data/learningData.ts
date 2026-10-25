@@ -26,7 +26,9 @@ export interface GameModeConfig {
     | 'slingshot_magic'
     | 'crazy_catcher'
     | 'drag_match'
-    | 'sentence_builder';
+    | 'sentence_builder'
+    | 'vehicle_pilot'
+    | 'magic_puzzle';
   title: string;
   shortTitle: string;
   badge: string;
@@ -327,6 +329,32 @@ export const GAME_MODES: GameModeConfig[] = [
     tagline: '¡Construye frases arrastrando!',
     color: '#0ea5e9',
     bgGradient: 'from-sky-500 to-indigo-600',
+    hasSpeech: true,
+  },
+  {
+    id: 'vehicle_pilot',
+    title: 'Piloto Turbo',
+    shortTitle: 'Coche/Avión',
+    badge: '🏎️ Controla y Atrapa',
+    mechanicBadge: '✈️ Desliza el vehículo',
+    icon: '🏎️',
+    description: '¡Conduce el coche o vuela el avión deslizando el dedo y atrapa solo la palabra correcta!',
+    tagline: '¡Pilota y atrapa al vuelo!',
+    color: '#f59e0b',
+    bgGradient: 'from-amber-400 to-orange-600',
+    hasSpeech: true,
+  },
+  {
+    id: 'magic_puzzle',
+    title: 'Puzzle Mágico',
+    shortTitle: 'Puzzle',
+    badge: '🧩 Encaja Piezas',
+    mechanicBadge: '🎯 Drag al hueco',
+    icon: '🧩',
+    description: '¡Arrastra cada pieza emoji a su hueco correcto y completa el puzzle mágico!',
+    tagline: '¡Encaja y aprende!',
+    color: '#8b5cf6',
+    bgGradient: 'from-violet-500 to-purple-700',
     hasSpeech: true,
   },
 ];

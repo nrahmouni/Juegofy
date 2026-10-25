@@ -4,59 +4,27 @@ Aventura de aprendizaje por turnos para niños (3–9 años) con retos en **espa
 
 ## Características
 
-- **12 modos de juego** con mecánicas de arrastrar, lanzar, apuntar y construir frases
-- **Audio 100 % sincronizado**: el juego espera a que termine de hablar antes de avanzar
-- **Adaptive learning**: repasa palabras falladas y no repite las ya aprendidas
-- Multijugador por turnos, avatares con cámara, monedas, podium y confeti
-- Temas visuales: Dulces, Selva, Espacio, Océano, Volcán
-
-### Modos de juego
-
-| Modo | Mecánica |
-|------|----------|
-| Come-Palabras | Arrastra / lanza comida a la boca del monstruo |
-| Tirachinas Mágico | Estira, apunta y dispara a nubes |
-| Atrapa-Paracaídas | Desliza la cesta o arrastra paracaídas |
-| Empareja Mágico ✨ | Arrastra la palabra al dibujo correcto |
-| Constructor de Frases ✨ | Ordena tokens arrastrándolos |
-| Cohete Espacial | Pilota y atrapa astros |
-| Tren de Letras | Construye palabras y frases |
-| Cofres del Tesoro | Memoria |
-| Topos Flamencos / Burbujas Árabes / Chef Francés / Safari | Específicos por idioma |
-
-✨ = nuevos en esta versión
+- **Hub premium con slides**: desliza tarjetas grandes para elegir el juego
+- **14+ modos** con mecánicas distintas (arrastrar, pilotar, puzzle, apuntar…)
+- **Piloto Turbo** 🏎️✈️: controla coche o avión y atrapa la palabra
+- **Puzzle Mágico** 🧩: encaja piezas arrastrando
+- **Audio 100 % sincronizado** + adaptive learning
+- Multijugador por turnos, monedas, podium y confeti
 
 ## Cómo ejecutar
 
 ```bash
-# Instalar (usa bun o npm)
-bun install
-# o: npm install
-
-# Copia la clave de Gemini
-cp .env.example .env
-# Edita .env y pon tu GEMINI_API_KEY
-
-# Desarrollo
-bun run dev
-# o: npm run dev
+bun install   # o npm install
+cp .env.example .env   # pon tu GEMINI_API_KEY
+bun run dev   # o npm run dev
 ```
 
-Abre http://localhost:3000
+## Aplicar este paquete en un clone (un solo comando)
 
-## Estructura clave
+Desde la raíz del repo:
 
-```
-src/
-  audio/soundManager.ts   # SFX + TTS sincronizado + haptics
-  hooks/useAdaptiveRound.ts
-  components/games/       # Todos los mini-juegos
-  data/learningData.ts    # Vocabulario + GAME_MODES
-  types/game.ts
+```bash
+bash apply-next-level.sh
 ```
 
-## Notas de audio
-
-- Usa siempre `await sounds.speakSequence([...])` o `await sounds.speakAsync(...)`.
-- Nunca avances de ronda con `setTimeout` fijos mientras habla.
-- `sounds.hapticSuccess()` / `hapticError()` dan feedback táctil en móviles.
+(o el comando largo del README del zip)

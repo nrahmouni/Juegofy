@@ -36,7 +36,9 @@ export type GameModeId =
   | 'slingshot_magic'
   | 'crazy_catcher'
   | 'drag_match'
-  | 'sentence_builder';
+  | 'sentence_builder'
+  | 'vehicle_pilot'
+  | 'magic_puzzle';
 
 export type VehicleId = 'kart' | 'rocket' | 'ufo' | 'dragon' | 'broom' | 'cyber';
 

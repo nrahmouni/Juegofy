@@ -23,6 +23,8 @@ import { SlingshotGame } from './games/SlingshotGame';
 import { CatcherBasketGame } from './games/CatcherBasketGame';
 import { DragMatchGame } from './games/DragMatchGame';
 import { SentenceBuilderGame } from './games/SentenceBuilderGame';
+import { VehiclePilotGame } from './games/VehiclePilotGame';
+import { MagicPuzzleGame } from './games/MagicPuzzleGame';
 import { X, Volume2, VolumeX, Star, BookOpen, Check } from 'lucide-react';
 
 interface Props {
@@ -418,6 +420,38 @@ export const GameCanvas: React.FC<Props> = ({
           )}
           {gameMode === 'sentence_builder' && (
             <SentenceBuilderGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+          {gameMode === 'vehicle_pilot' && (
+            <VehiclePilotGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+          {gameMode === 'magic_puzzle' && (
+            <MagicPuzzleGame
               player={player}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
