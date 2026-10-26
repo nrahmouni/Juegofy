@@ -26,23 +26,28 @@ export type AgeGroup = 'preschool' | 'kids';
 
 export type PracticeLang = 'es' | 'fl' | 'ar' | 'fr';
 
+// SOLO 10 JUEGOS PRINCIPALES + more
 export type GameModeId =
-  | 'lang_spanish_abc'
+  | 'monster_feeder'      // 1. Come-Palabras
+  | 'slingshot_magic'     // 2. Tirachinas
+  | 'word_dash'           // 3. Carrera
+  | 'drag_match'          // 4. Empareja
+  | 'rocket_race'         // 5. Cohete
+  | 'bubble_pop'          // 6. NUEVO - Burbujas Mágicas
+  | 'dress_up'            // 7. NUEVO - Viste a tu Amigo
+  | 'safari_photo'        // 8. Safari Fotográfico (mejorado)
+  | 'sentence_train'      // 9. NUEVO - Tren de Frases
+  | 'crazy_kitchen'       // 10. Cocina del Chef
+  // Los demás van a "Más Juegos"
   | 'lang_flemish'
-  | 'lang_spanish_words'
   | 'lang_arabic'
   | 'lang_french'
-  | 'safari_adventure'
-  | 'monster_feeder'
-  | 'rocket_race'
-  | 'slingshot_magic'
-  | 'crazy_catcher'
-  | 'drag_match'
-  | 'sentence_builder'
-  | 'vehicle_pilot'
   | 'magic_puzzle'
-  | 'word_dash'
-  | 'crazy_kitchen'
+  | 'vehicle_pilot'
+  | 'circuit_path'
+  | 'flemish_world'
+  | 'lang_spanish_abc'
+  | 'lang_spanish_words';
 
 export type VehicleId = 'kart' | 'rocket' | 'ufo' | 'dragon' | 'broom' | 'cyber';
 
