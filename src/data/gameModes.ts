@@ -4,24 +4,24 @@ export interface GameModeConfig {
   id: GameModeId;
   title: string;
   shortTitle: string;
-  icon: string;          // emoji grande
+  icon: string;
   color: string;
   description: string;
   mechanic: string;
   isNew?: boolean;
-  isCore: boolean;       // true = aparece en la pantalla principal
+  isCore: boolean;
 }
 
-/** SOLO 10 JUEGOS PRINCIPALES - limpios y claros */
+/** 10 JUEGOS PRINCIPALES - más jugables y claros */
 export const CORE_GAMES: GameModeConfig[] = [
   {
     id: 'monster_feeder',
     title: '¡Come-Palabras!',
     shortTitle: 'Monstruo',
     icon: '👾',
-    color: '#ec4899',
-    description: 'Arrastra la comida correcta a la boca del monstruo',
-    mechanic: 'Arrastra y alimenta',
+    color: '#a855f7',
+    description: 'Lanza la comida correcta a la boca del monstruo',
+    mechanic: 'Arrastra y lanza',
     isCore: true,
   },
   {
@@ -30,7 +30,7 @@ export const CORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Tirachinas',
     icon: '🏹',
     color: '#d946ef',
-    description: 'Estira y lanza a la nube correcta',
+    description: 'Estira y dispara a la nube correcta',
     mechanic: 'Estira y dispara',
     isCore: true,
   },
@@ -40,7 +40,7 @@ export const CORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Carrera',
     icon: '🏃',
     color: '#10b981',
-    description: 'Corre, cambia de carril y atrapa solo la palabra buena',
+    description: 'Corre, cambia de carril y atrapa la palabra buena',
     mechanic: 'Corre y atrapa',
     isCore: true,
   },
@@ -49,7 +49,7 @@ export const CORE_GAMES: GameModeConfig[] = [
     title: 'Empareja Mágico',
     shortTitle: 'Empareja',
     icon: '🧲',
-    color: '#a855f7',
+    color: '#8b5cf6',
     description: 'Une cada dibujo con su palabra',
     mechanic: 'Arrastra y une',
     isCore: true,
@@ -70,7 +70,7 @@ export const CORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Burbujas',
     icon: '🫧',
     color: '#14b8a6',
-    description: 'Escucha la palabra y explota la burbuja correcta',
+    description: 'Escucha y explota la burbuja correcta',
     mechanic: 'Escucha y explota',
     isNew: true,
     isCore: true,
@@ -113,13 +113,12 @@ export const CORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Cocina',
     icon: '🍳',
     color: '#f97316',
-    description: 'El chef pide ingredientes en orden. ¡Cocínalos!',
+    description: 'El chef pide ingredientes en orden',
     mechanic: 'Arrastra al sartén',
     isCore: true,
   },
 ];
 
-/** Juegos extra (van dentro de "Más Juegos") */
 export const MORE_GAMES: GameModeConfig[] = [
   {
     id: 'lang_flemish',
@@ -127,7 +126,7 @@ export const MORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Flamenco',
     icon: '🌻',
     color: '#eab308',
-    description: 'Atrapa el topo correcto en flamenco',
+    description: 'Atrapa el topo correcto',
     mechanic: 'Atrapa rápido',
     isCore: false,
   },
@@ -137,7 +136,7 @@ export const MORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Árabe',
     icon: '🧞',
     color: '#10b981',
-    description: 'Burbujas del genio en árabe',
+    description: 'Burbujas del genio',
     mechanic: 'Explota burbujas',
     isCore: false,
   },
@@ -147,24 +146,14 @@ export const MORE_GAMES: GameModeConfig[] = [
     shortTitle: 'Francés',
     icon: '🥐',
     color: '#3b82f6',
-    description: 'Sirve los platos en francés',
+    description: 'Sirve los platos',
     mechanic: 'Sirve el plato',
-    isCore: false,
-  },
-  {
-    id: 'magic_puzzle',
-    title: 'Puzzle Mágico',
-    shortTitle: 'Puzzle',
-    icon: '🧩',
-    color: '#8b5cf6',
-    description: 'Encaja las piezas correctas',
-    mechanic: 'Encaja piezas',
     isCore: false,
   },
 ];
 
 export const ALL_GAMES = [...CORE_GAMES, ...MORE_GAMES];
 
-export function getGameById(id: GameModeId): GameModeConfig | undefined {
+export function getGameById(id: GameModeId) {
   return ALL_GAMES.find((g) => g.id === id);
 }
