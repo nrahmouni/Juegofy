@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { Volume2, HelpCircle } from 'lucide-react';
 import { PlayerConfig } from '../../types/game';
+import type { PracticeLang } from '../../types/game';
 import {
   LearningItem,
   selectAdaptiveItems,
@@ -16,6 +17,7 @@ import { TutorialHint } from '../common/TutorialHint';
 
 interface Props {
   player: PlayerConfig;
+  practiceLang?: PracticeLang;
   selectedLevel: number;
   learnedWordIds: string[];
   missedWordIds?: string[];
@@ -49,6 +51,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export const MagicPuzzleGame: React.FC<Props> = ({
   player,
+  practiceLang = 'es',
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],
@@ -62,7 +65,10 @@ export const MagicPuzzleGame: React.FC<Props> = ({
   const totalRounds = Math.min(5, 3 + Math.floor(selectedLevel / 3));
   const pieceCount = selectedLevel >= 5 ? 4 : 3;
 
-  const [langKey, setLangKey] = useState<LangFilter>('es');
+  const [langKey, setLangKey] = useState<LangFilter>((practiceLang as LangFilter) || 'es');
+  useEffect(() => {
+    if (practiceLang) setLangKey(practiceLang as LangFilter);
+  }, [practiceLang]);
   const [target, setTarget] = useState<LearningItem | null>(null);
   const [board, setBoard] = useState<LearningItem[]>([]);
   const [tray, setTray] = useState<LearningItem[]>([]);

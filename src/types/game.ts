@@ -24,6 +24,8 @@ export type CostumeId =
 
 export type AgeGroup = 'preschool' | 'kids';
 
+export type PracticeLang = 'es' | 'fl' | 'ar' | 'fr';
+
 export type GameModeId =
   | 'lang_spanish_abc'
   | 'lang_flemish'

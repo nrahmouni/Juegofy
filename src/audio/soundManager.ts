@@ -590,11 +590,9 @@ class SoundManager {
   ): Promise<void> {
     const word = (item.audioText || item.es || '').trim();
     if (!word) return;
-    let phrase = word;
-    if (style === 'find') phrase = `¿Dónde está? ${word}`;
-    if (style === 'catch') phrase = `¡Atrapa! ${word}`;
-    // "find/catch" already includes the word once — do not speak word again after
-    await this.speakAsync(phrase, item.audioLang || 'es-ES', true);
+    // Speak the learning phrase ONCE. Extra Spanish wrappers often restart TTS mid-word on mobile.
+    void style;
+    await this.speakAsync(word, item.audioLang || 'es-ES', true);
   }
 
   /** Praise only — skips if the exact same line just played */
@@ -606,17 +604,15 @@ class SoundManager {
    * Speaks a single utterance and resolves when the voice finishes speaking.
    */
   /** Soft punctuation so TTS breathes more naturally */
-  private humanizeSpeechText(text: string, lang: string): string {
+  private humanizeSpeechText(text: string, _lang: string): string {
     let t = text.trim().replace(/\s+/g, ' ');
-    // Avoid shouting ALL CAPS (very robotic)
-    if (t === t.toUpperCase() && t.length > 2) {
+    // Avoid ALL CAPS (robotic). Do NOT insert commas after articles — causes "la... La oveja".
+    if (t === t.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(t) && t.length > 2) {
       t = t.toLowerCase();
       t = t.charAt(0).toUpperCase() + t.slice(1);
     }
-    // Tiny pause after article-like words for Spanish
-    if (lang.toLowerCase().startsWith('es')) {
-      t = t.replace(/\b(El|La|Los|Las|Un|Una)\s+/g, '$1, ');
-    }
+    // Collapse accidental double articles "La la oveja" / "El el perro"
+    t = t.replace(/\b(El|La|Los|Las|Un|Una)\s+\1\b/gi, '$1');
     return t;
   }
 
@@ -633,7 +629,7 @@ class SoundManager {
     const key = `${lang}|${clean.toLowerCase()}`;
     const now = Date.now();
     // Prevent "el el perro" / double prompts within 1.6s
-    if (key === this.lastSpokenKey && now - this.lastSpokenAt < 1600) {
+    if (key === this.lastSpokenKey && now - this.lastSpokenAt < 2200) {
       return;
     }
     this.lastSpokenKey = key;
@@ -644,9 +640,12 @@ class SoundManager {
       try {
         window.speechSynthesis.cancel();
       } catch {}
+      // Chrome often glitches if speak() follows cancel() immediately
+      await new Promise((r) => setTimeout(r, 90));
+      if (myToken !== this.speechToken) return;
     }
 
-    await this.speakSingleRaw(text, lang, myToken);
+    await this.speakSingleRaw(clean, lang, myToken);
   }
 
   /**

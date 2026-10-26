@@ -6,13 +6,15 @@ import {
   LearningItem,
   selectAdaptiveItems,
   getPersonalizedPraise,
-  SPANISH_VOCAB_ITEMS,
 } from '../../data/learningData';
+import { PracticeLang } from '../../types/game';
+import { getKitchenPool } from '../../data/languagePools';
 import { sounds } from '../../audio/soundManager';
 import { TutorialHint } from '../common/TutorialHint';
 
 interface Props {
   player: PlayerConfig;
+  practiceLang?: PracticeLang;
   selectedLevel: number;
   learnedWordIds: string[];
   missedWordIds?: string[];
@@ -34,6 +36,7 @@ type OrderStep = { item: LearningItem; done: boolean };
  */
 export const CrazyKitchenGame: React.FC<Props> = ({
   player,
+  practiceLang = 'es',
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],
@@ -74,7 +77,7 @@ export const CrazyKitchenGame: React.FC<Props> = ({
       setDragging(null);
       setStepIdx(0);
 
-      const pool = SPANISH_VOCAB_ITEMS;
+      const pool = getKitchenPool(practiceLang);
       const available = pool.filter((i) => !usedIds.current.has(i.id));
       const picks: LearningItem[] = [];
       let src = available.length ? available : pool;
@@ -109,7 +112,7 @@ export const CrazyKitchenGame: React.FC<Props> = ({
         await sounds.speakAsync(`¡Pedido! ${names}`, 'es-ES', true);
       })();
     },
-    [selectedLevel, learnedWordIds, missedWordIds, stepsPerOrder]
+    [selectedLevel, learnedWordIds, missedWordIds, stepsPerOrder, practiceLang]
   );
 
   useEffect(() => {
@@ -223,21 +226,21 @@ export const CrazyKitchenGame: React.FC<Props> = ({
         setDragPos(null);
       }}
     >
-      {/* Chef order */}
-      <div className="shrink-0 bg-white rounded-3xl p-3 shadow-xl border-b-8 border-orange-200 flex items-center gap-3">
-        <div className="text-5xl">{chefMood === 'happy' ? '🤩' : chefMood === 'oops' ? '😤' : '👨‍🍳'}</div>
+      {/* Chef order — compact */}
+      <div className="shrink-0 bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 shadow-xl border-b-6 border-orange-200 flex items-center gap-2">
+        <div className="text-4xl sm:text-5xl shrink-0">{chefMood === 'happy' ? '🤩' : chefMood === 'oops' ? '😤' : '👨‍🍳'}</div>
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-black uppercase text-orange-500">Pedido {roundIdx + 1}/{totalRounds}</div>
-          <div className="flex flex-wrap gap-1.5 mt-1">
+          <div className="text-[10px] font-black uppercase text-orange-500">Pedido {roundIdx + 1}/{totalRounds} · comida real</div>
+          <div className="flex flex-wrap gap-1 mt-1">
             {order.map((s, i) => (
               <span
                 key={s.item.id}
-                className={`px-2 py-1 rounded-xl text-xs font-black border-2 ${
+                className={`px-1.5 py-0.5 rounded-lg text-[11px] sm:text-xs font-black border-2 ${
                   s.done
                     ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
                     : i === stepIdx
                       ? 'bg-amber-200 border-amber-500 text-slate-900 ring-2 ring-amber-400'
-                      : 'bg-slate-50 border-slate-200 text-slate-500'
+                      : 'bg-slate-50 border-slate-200 text-slate-400'
                 }`}
               >
                 {s.item.emoji} {s.item.es}
@@ -247,7 +250,7 @@ export const CrazyKitchenGame: React.FC<Props> = ({
         </div>
         <button
           type="button"
-          className="p-3 rounded-2xl bg-orange-500 text-white shadow"
+          className="p-2.5 rounded-2xl bg-orange-500 text-white shadow shrink-0"
           onClick={() =>
             currentNeed &&
             void sounds.speakAsync(currentNeed.item.audioText || currentNeed.item.es, currentNeed.item.audioLang || 'es-ES', true)
@@ -268,21 +271,21 @@ export const CrazyKitchenGame: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Pan drop zone */}
-      <div className="flex-1 flex items-center justify-center min-h-0">
+      {/* Pan drop zone — not oversized on phones */}
+      <div className="flex-1 flex items-center justify-center min-h-0 py-1">
         <div
           ref={panRef}
-          className={`relative w-[78%] max-w-sm aspect-square max-h-[220px] rounded-full border-8 border-slate-700 bg-gradient-to-b from-slate-600 to-slate-800 shadow-2xl flex flex-col items-center justify-center transition-transform ${
+          className={`relative w-[70%] max-w-[240px] aspect-square max-h-[min(42vh,240px)] rounded-full border-[6px] border-slate-700 bg-gradient-to-b from-slate-500 to-slate-800 shadow-2xl flex flex-col items-center justify-center transition-transform ${
             panHot ? 'scale-105 ring-4 ring-orange-400' : ''
           }`}
         >
-          <div className="text-6xl">{panHot ? '🔥' : '🍳'}</div>
-          <div className="text-white font-black text-sm mt-2">
+          <div className="text-5xl sm:text-6xl">{panHot ? '🔥' : '🍳'}</div>
+          <div className="text-white font-black text-sm sm:text-base mt-1 px-2 text-center">
             {currentNeed ? `Echa: ${currentNeed.item.emoji} ${currentNeed.item.es}` : '¡Listo!'}
           </div>
-          <div className="flex gap-1 mt-2">
+          <div className="flex gap-1 mt-1.5 min-h-[28px]">
             {order.filter((s) => s.done).map((s) => (
-              <span key={s.item.id} className="text-2xl">{s.item.emoji}</span>
+              <span key={s.item.id} className="text-xl sm:text-2xl">{s.item.emoji}</span>
             ))}
           </div>
         </div>

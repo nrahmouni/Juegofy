@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PlayerConfig, ThemeId, PlayerResult, GameModeId, AgeGroup } from './types/game';
+import { PlayerConfig, ThemeId, PlayerResult, GameModeId, AgeGroup, PracticeLang } from './types/game';
 import { THEMES, PLAYER_COLORS } from './data/themes';
 import { MAX_GAME_LEVEL } from './data/learningData';
 import { PlayerSetup } from './components/PlayerSetup';
@@ -78,6 +78,18 @@ export default function App() {
 
   // Age group target (preschool 3-5 vs kids 6-9)
   const [ageGroup, setAgeGroup] = useState<AgeGroup>('preschool');
+  const [practiceLang, setPracticeLang] = useState<PracticeLang>(() => {
+    try {
+      const s = localStorage.getItem('mundo_magico_practice_lang');
+      if (s === 'es' || s === 'fl' || s === 'ar' || s === 'fr') return s;
+    } catch {}
+    return 'es';
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('mundo_magico_practice_lang', practiceLang);
+    } catch {}
+  }, [practiceLang]);
 
   // Save players & smart learning progress to localStorage
   useEffect(() => {
@@ -244,6 +256,8 @@ export default function App() {
             setGameMode={setGameMode}
             ageGroup={ageGroup}
             setAgeGroup={setAgeGroup}
+            practiceLang={practiceLang}
+            setPracticeLang={setPracticeLang}
             onStartGame={handleStartGame}
             onToggleFullscreen={handleToggleFullscreen}
             isFullscreen={isFullscreen}
@@ -266,6 +280,7 @@ export default function App() {
             selectedLevel={selectedLevel}
             gameMode={gameMode}
             ageGroup={ageGroup}
+            practiceLang={practiceLang}
             learnedWordIds={learnedWordIds}
             missedWordIds={missedWordIds}
             onMarkWordLearned={handleMarkWordLearned}

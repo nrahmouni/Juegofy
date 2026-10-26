@@ -8,6 +8,7 @@ import {
   selectAdaptiveItems,
   getPersonalizedPraise,
 } from '../../data/learningData';
+import { getWordOnlyPool } from '../../data/languagePools';
 import { sounds } from '../../audio/soundManager';
 import { TutorialHint } from '../common/TutorialHint';
 import { MascotBuddy } from '../common/MascotBuddy';
@@ -29,7 +30,8 @@ interface Props {
 
 type ActivityId = 'hub' | 'canal' | 'wafel' | 'molen' | 'ballon';
 
-const POOL = FLEMISH_LEARNING_ITEMS;
+const POOL = getWordOnlyPool('fl');
+const POOL_ALL = FLEMISH_LEARNING_ITEMS;
 
 function articleOf(item: LearningItem): 'de' | 'het' {
   const t = (item.targetText || item.audioText || '').toLowerCase();
@@ -556,21 +558,26 @@ const BallonGame: React.FC<ActProps> = ({
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-b from-pink-200 to-fuchsia-500 p-3 overflow-hidden">
       <Header title="Ballonnen" onBack={onBack} onSpeak={() => void sounds.speakAsync(target.audioText, 'nl-BE', true)} />
-      <div className="text-center text-white font-black text-sm mb-2">
-        ¡Explota {target.emoji}! · {idx + 1}/{total}
+      <div className="mx-auto mb-2 max-w-sm w-full bg-white/95 rounded-2xl px-3 py-2 shadow-lg text-center">
+        <div className="text-[10px] font-black uppercase text-fuchsia-600">Escucha y explota</div>
+        <div className="text-lg font-black text-slate-900">
+          {target.emoji} <span className="text-fuchsia-700">{target.targetText || target.audioText}</span>
+        </div>
+        <div className="text-[11px] font-bold text-slate-500">{target.es} · {idx + 1}/{total}</div>
       </div>
-      <div className="flex-1 flex flex-wrap content-center justify-center gap-3">
+      <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2 content-center px-1 max-w-md mx-auto w-full">
         {balloons.map((b, i) => (
           <button
             key={b.id}
             type="button"
             onClick={() => void pop(b)}
-            className="w-24 h-28 rounded-[2rem] bg-white/95 shadow-xl border-b-6 border-fuchsia-700 btn-squishy flex flex-col items-center justify-center animate-float"
-            style={{ animationDelay: `${i * 120}ms` }}
+            className="aspect-[4/5] max-h-[140px] rounded-2xl bg-white shadow-lg border-b-4 border-fuchsia-600 btn-squishy flex flex-col items-center justify-center gap-0.5 px-1"
           >
-            <span className="text-2xl">🎈</span>
-            <span className="text-3xl">{b.emoji}</span>
-            <span className="text-[10px] font-black">{b.targetText}</span>
+            <span className="text-lg leading-none">🎈</span>
+            <span className="text-3xl leading-none">{b.emoji}</span>
+            <span className="text-[10px] font-black text-slate-800 text-center leading-tight line-clamp-2">
+              {b.targetText}
+            </span>
           </button>
         ))}
       </div>

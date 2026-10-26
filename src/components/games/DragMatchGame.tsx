@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Volume2, Sparkles, HelpCircle, Hand } from 'lucide-react';
 import { PlayerConfig } from '../../types/game';
+import type { PracticeLang } from '../../types/game';
 import {
   LearningItem,
   SPANISH_VOCAB_ITEMS,
@@ -14,6 +15,7 @@ import { useAdaptiveRound } from '../../hooks/useAdaptiveRound';
 
 interface Props {
   player: PlayerConfig;
+  practiceLang?: PracticeLang;
   selectedLevel: number;
   learnedWordIds: string[];
   missedWordIds?: string[];
@@ -42,6 +44,7 @@ const LANG_POOLS: Record<LangFilter, { label: string; flag: string; items: Learn
  */
 export const DragMatchGame: React.FC<Props> = ({
   player,
+  practiceLang = 'es',
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],
@@ -55,7 +58,10 @@ export const DragMatchGame: React.FC<Props> = ({
   const totalRounds = Math.min(6, 3 + Math.floor(selectedLevel / 2));
   const optionsCount = Math.min(4, 3 + Math.floor(selectedLevel / 4));
 
-  const [langKey, setLangKey] = useState<LangFilter>('es');
+  const [langKey, setLangKey] = useState<LangFilter>((practiceLang as LangFilter) || 'es');
+  useEffect(() => {
+    if (practiceLang) setLangKey(practiceLang as LangFilter);
+  }, [practiceLang]);
   const [dragged, setDragged] = useState<LearningItem | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [matchedId, setMatchedId] = useState<string | null>(null);
@@ -264,8 +270,8 @@ export const DragMatchGame: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Emoji drop slots */}
-      <div className="w-full max-w-xl grid grid-cols-2 sm:grid-cols-4 gap-3 my-2 z-10">
+      {/* Emoji drop slots — compact for mobile so word cards stay visible */}
+      <div className="w-full max-w-xl grid grid-cols-3 gap-2 my-1 z-10 px-1">
         {slotOrder.map((item, idx) => {
           const isMatched = matchedId === item.id;
           const isWrong = wrongSlotId === item.id;
@@ -276,7 +282,7 @@ export const DragMatchGame: React.FC<Props> = ({
               ref={(el) => {
                 slotRefs.current[idx] = el;
               }}
-              className={`relative aspect-square rounded-[1.8rem] flex flex-col items-center justify-center shadow-xl border-4 transition-all duration-200 ${
+              className={`relative aspect-square max-h-[22vh] rounded-2xl flex flex-col items-center justify-center shadow-lg border-4 transition-all duration-200 ${
                 isMatched
                   ? 'bg-emerald-400 border-emerald-200 scale-105 ring-4 ring-emerald-300/60'
                   : isWrong
@@ -286,15 +292,15 @@ export const DragMatchGame: React.FC<Props> = ({
                   : 'bg-white/90 border-violet-200'
               }`}
             >
-              <span className="text-4xl sm:text-5xl drop-shadow">{item.emoji}</span>
-              {isMatched && <span className="absolute top-1 right-1 text-lg">✅</span>}
+              <span className="text-3xl sm:text-4xl drop-shadow">{item.emoji}</span>
+              {isMatched && <span className="absolute top-0.5 right-0.5 text-sm">✅</span>}
             </div>
           );
         })}
       </div>
 
-      {/* Draggable word cards */}
-      <div className="w-full max-w-xl flex flex-wrap items-center justify-center gap-2.5 z-10 pb-2">
+      {/* Draggable word cards — always above footer */}
+      <div className="w-full max-w-xl flex flex-wrap items-center justify-center gap-2 z-10 pb-16 shrink-0">
         {cards.map((item) => {
           const isDragging = dragged?.id === item.id;
           return (

@@ -15,9 +15,10 @@ import {
   RotateCcw,
   Brain,
 } from 'lucide-react';
-import { PlayerConfig, ThemeId, StickerId, GameModeId, AgeGroup } from '../types/game';
+import { PlayerConfig, ThemeId, StickerId, GameModeId, AgeGroup, PracticeLang } from '../types/game';
 import { STICKERS, PLAYER_COLORS, DEFAULT_AVATARS } from '../data/themes';
 import { GAME_MODES, MAX_GAME_LEVEL } from '../data/learningData';
+import { PRACTICE_LANG_OPTIONS } from '../data/languagePools';
 import { CameraCaptureModal } from './CameraCaptureModal';
 import { GarageShopModal } from './GarageShopModal';
 import { SmartLearningModal } from './SmartLearningModal';
@@ -37,7 +38,7 @@ const WORLD_ISLANDS: {
     title: 'Acción',
     emoji: '⚡',
     color: '#f43f5e',
-    modeIds: ['monster_feeder', 'slingshot_magic', 'word_dash', 'rocket_race'],
+    modeIds: ['monster_feeder', 'slingshot_magic', 'word_dash', 'rocket_race', 'circuit_path'],
   },
   {
     id: 'words',
@@ -65,7 +66,7 @@ const WORLD_ISLANDS: {
     title: 'Cocina',
     emoji: '🍳',
     color: '#f97316',
-    modeIds: ['crazy_kitchen'],
+    modeIds: ['crazy_kitchen', 'dress_up'],
   },
 ];
 
@@ -86,6 +87,8 @@ interface Props {
   setGameMode: (m: GameModeId) => void;
   ageGroup: AgeGroup;
   setAgeGroup: (a: AgeGroup) => void;
+  practiceLang: PracticeLang;
+  setPracticeLang: (l: PracticeLang) => void;
   onStartGame: () => void;
   onToggleFullscreen: () => void;
   isFullscreen: boolean;
@@ -105,6 +108,8 @@ export const PlayerSetup: React.FC<Props> = ({
   setGameMode,
   ageGroup,
   setAgeGroup,
+  practiceLang,
+  setPracticeLang,
   onStartGame,
   onToggleFullscreen,
   isFullscreen,
@@ -342,6 +347,34 @@ export const PlayerSetup: React.FC<Props> = ({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+            {/* Practice language for all mechanic games */}
+      <div className="w-full max-w-4xl mx-auto shrink-0 px-1 mb-1">
+        <div className="flex items-center gap-2 bg-white/15 rounded-2xl px-2.5 py-1.5 border border-white/15">
+          <span className="text-[10px] font-black text-yellow-300 uppercase shrink-0">Idioma juego:</span>
+          <div className="flex gap-1.5 flex-1 overflow-x-auto">
+            {PRACTICE_LANG_OPTIONS.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => {
+                  sounds.sfxPop();
+                  setPracticeLang(l.id);
+                  void sounds.speakAsync(l.label, 'es-ES', true);
+                }}
+                className={`shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-black border-b-4 btn-squishy flex items-center gap-1 ${
+                  practiceLang === l.id
+                    ? 'bg-yellow-300 text-slate-900 border-yellow-600 scale-105'
+                    : 'bg-white/20 text-white border-transparent'
+                }`}
+              >
+                <span>{l.flag}</span>
+                <span className="hidden sm:inline">{l.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

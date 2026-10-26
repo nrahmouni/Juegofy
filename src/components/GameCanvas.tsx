@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { PlayerConfig, ThemeConfig, PlayerResult, GameModeId, AgeGroup } from '../types/game';
+import { PlayerConfig, ThemeConfig, PlayerResult, GameModeId, AgeGroup, PracticeLang } from '../types/game';
 import {
   GAME_MODES,
   ARABIC_LEARNING_ITEMS,
@@ -28,6 +28,8 @@ import { MagicPuzzleGame } from './games/MagicPuzzleGame';
 import { WordDashGame } from './games/WordDashGame';
 import { CrazyKitchenGame } from './games/CrazyKitchenGame';
 import { FlemishWorldHub } from './games/FlemishWorldHub';
+import { DressUpGame } from './games/DressUpGame';
+import { CircuitPathGame } from './games/CircuitPathGame';
 import { X, Volume2, VolumeX, Star, BookOpen, Check } from 'lucide-react';
 
 interface Props {
@@ -39,6 +41,7 @@ interface Props {
   selectedLevel: number;
   gameMode: GameModeId;
   ageGroup: AgeGroup;
+  practiceLang: PracticeLang;
   learnedWordIds: string[];
   missedWordIds: string[];
   onMarkWordLearned: (id: string) => void;
@@ -57,6 +60,7 @@ export const GameCanvas: React.FC<Props> = ({
   totalPlayers,
   selectedLevel,
   gameMode,
+  practiceLang,
   learnedWordIds,
   missedWordIds,
   onMarkWordLearned,
@@ -235,6 +239,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'monster_feeder' && (
             <MonsterFeederGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -251,6 +256,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'rocket_race' && (
             <RocketRaceGame
               player={player}
+              practiceLang={practiceLang}
               items={SPANISH_VOCAB_ITEMS}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
@@ -376,6 +382,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'slingshot_magic' && (
             <SlingshotGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -408,6 +415,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'drag_match' && (
             <DragMatchGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -424,6 +432,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'sentence_builder' && (
             <SentenceBuilderGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -456,6 +465,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'magic_puzzle' && (
             <MagicPuzzleGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -473,6 +483,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'word_dash' && (
             <WordDashGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -490,6 +501,7 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'crazy_kitchen' && (
             <CrazyKitchenGame
               player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
@@ -507,6 +519,42 @@ export const GameCanvas: React.FC<Props> = ({
           {gameMode === 'flemish_world' && (
             <FlemishWorldHub
               player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'circuit_path' && (
+            <CircuitPathGame
+              player={player}
+              practiceLang={practiceLang}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'dress_up' && (
+            <DressUpGame
+              player={player}
+              practiceLang={practiceLang}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
               missedWordIds={missedWordIds}
