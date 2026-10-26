@@ -28,7 +28,9 @@ export interface GameModeConfig {
     | 'drag_match'
     | 'sentence_builder'
     | 'vehicle_pilot'
-    | 'magic_puzzle';
+    | 'magic_puzzle'
+    | 'word_dash'
+    | 'crazy_kitchen'
   title: string;
   shortTitle: string;
   badge: string;
@@ -279,19 +281,7 @@ export const GAME_MODES: GameModeConfig[] = [
     bgGradient: 'from-fuchsia-500 to-purple-600',
     hasSpeech: true,
   },
-  {
-    id: 'crazy_catcher',
-    title: 'Atrapa-Paracaídas',
-    shortTitle: 'Atrapa-Todo',
-    badge: '🛹 Desliza y Atrapa',
-    mechanicBadge: '🧺 Mueve la Cesta',
-    icon: '🛹',
-    description: '¡Desliza tu monopatín mágico de lado a lado con el dedo para atrapar las palabras que caen del cielo!',
-    tagline: '¡Mueve la cesta y atrapa al vuelo!',
-    color: '#14b8a6',
-    bgGradient: 'from-teal-500 to-emerald-600',
-    hasSpeech: true,
-  },
+
   {
     id: 'safari_adventure',
     title: 'Safari Fotográfico',
@@ -331,19 +321,7 @@ export const GAME_MODES: GameModeConfig[] = [
     bgGradient: 'from-sky-500 to-indigo-600',
     hasSpeech: true,
   },
-  {
-    id: 'vehicle_pilot',
-    title: 'Piloto Turbo',
-    shortTitle: 'Coche/Avión',
-    badge: '🏎️ Controla y Atrapa',
-    mechanicBadge: '✈️ Desliza el vehículo',
-    icon: '🏎️',
-    description: '¡Conduce el coche o vuela el avión deslizando el dedo y atrapa solo la palabra correcta!',
-    tagline: '¡Pilota y atrapa al vuelo!',
-    color: '#f59e0b',
-    bgGradient: 'from-amber-400 to-orange-600',
-    hasSpeech: true,
-  },
+
   {
     id: 'magic_puzzle',
     title: 'Puzzle Mágico',
@@ -355,6 +333,45 @@ export const GAME_MODES: GameModeConfig[] = [
     tagline: '¡Encaja y aprende!',
     color: '#8b5cf6',
     bgGradient: 'from-violet-500 to-purple-700',
+    hasSpeech: true,
+  },
+  {
+    id: 'word_dash',
+    title: 'Carrera de Palabras',
+    shortTitle: 'Carrera',
+    badge: '🏃 Corre y Esquiva',
+    mechanicBadge: '⚡ Skill runner',
+    icon: '🏃',
+    description: '¡Corre sin parar, cambia de carril, esquiva rocas y atrapa solo la palabra correcta! Vidas y velocidad real.',
+    tagline: '¡Un juego de verdad con reflejos!',
+    color: '#10b981',
+    bgGradient: 'from-emerald-400 to-cyan-600',
+    hasSpeech: true,
+  },
+  {
+    id: 'flemish_world',
+    title: 'Mundo Flamenco',
+    shortTitle: 'Vlaanderen',
+    badge: '🇧🇪 Zona especial',
+    mechanicBadge: '⛵ de/het · 🧇 · 🎈',
+    icon: '🇧🇪',
+    description: 'Ventana especial de Flandes: canal de/het, wafelwinkel, molino y globos. 4 minijuegos en un mundo belga.',
+    tagline: '¡Aventura total en flamenco!',
+    color: '#eab308',
+    bgGradient: 'from-yellow-400 to-red-500',
+    hasSpeech: true,
+  },
+  {
+    id: 'crazy_kitchen',
+    title: 'Cocina Loca',
+    shortTitle: 'Cocina',
+    badge: '🍳 Arrastra al sartén',
+    mechanicBadge: '👨‍🍳 Pedido en orden',
+    icon: '🍳',
+    description: '¡El chef pide ingredientes en orden! Arrástralos al sartén en la secuencia correcta.',
+    tagline: '¡Cocina el pedido mágico!',
+    color: '#f97316',
+    bgGradient: 'from-orange-400 to-rose-500',
     hasSpeech: true,
   },
 ];

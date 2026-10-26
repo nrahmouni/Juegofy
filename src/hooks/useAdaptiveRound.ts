@@ -145,14 +145,8 @@ export function useAdaptiveRound(cfg: AdaptiveRoundConfig) {
       const praise = getPersonalizedPraise(playerName, isFinalWin);
       setPraiseBanner(praise);
 
-      // CRITICAL: wait until both the word and the praise have finished speaking
-      await sounds.speakSequence(
-        [
-          { text: chosen.audioText, lang: chosen.audioLang, pauseAfterMs: 100 },
-          { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
-        ],
-        true
-      );
+      // Only praise — target word was already spoken at round start (no "el el…")
+      await sounds.speakPraise(praise);
 
       setPraiseBanner(null);
 

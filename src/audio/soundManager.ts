@@ -18,6 +18,8 @@ class SoundManager {
   private cachedVoices: SpeechSynthesisVoice[] = [];
   private isSpeakingNow: boolean = false;
   private speechToken: number = 0;
+  private lastSpokenKey: string = '';
+  private lastSpokenAt: number = 0;
   private speakingListeners: Set<SpeakingListener> = new Set();
 
   constructor() {
@@ -475,8 +477,11 @@ class SoundManager {
       const name = v.name.toLowerCase();
 
       if (vLang === targetLower) score += 25;
-      if (name.includes('natural') || name.includes('online')) score += 40;
-      if (name.includes('google')) score += 35;
+      if (name.includes('natural') || name.includes('online') || name.includes('neural') || name.includes('wavenet') || name.includes('studio')) score += 55;
+      if (name.includes('google')) score += 45;
+      if (name.includes('microsoft')) score += 28;
+      // Prefer remote/cloud voices over compact offline robotic ones
+      if (v.localService) score -= 15;
       if (name.includes('premium') || name.includes('enhanced') || name.includes('siri')) score += 30;
       if (
         name.includes('monica') ||
@@ -541,10 +546,22 @@ class SoundManager {
           utterance.voice = bestVoice;
         }
 
+        // Softer, more "storyteller" cadence (robotic = high rate + high pitch)
         const isSpanish = lang.toLowerCase().startsWith('es');
         const wordCount = text.trim().split(/\s+/).length;
-        utterance.rate = isSpanish ? (wordCount > 3 ? 0.96 : 1.0) : wordCount > 2 ? 0.88 : 0.92;
-        utterance.pitch = 1.05;
+        if (isSpanish) {
+          utterance.rate = wordCount > 4 ? 0.88 : 0.92;
+          utterance.pitch = 1.0;
+        } else if (lang.toLowerCase().startsWith('fr')) {
+          utterance.rate = 0.9;
+          utterance.pitch = 1.02;
+        } else if (lang.toLowerCase().startsWith('ar')) {
+          utterance.rate = 0.86;
+          utterance.pitch = 1.0;
+        } else {
+          utterance.rate = wordCount > 2 ? 0.9 : 0.93;
+          utterance.pitch = 1.0;
+        }
         utterance.volume = 1.0;
 
         utterance.onstart = () => {
@@ -564,8 +581,45 @@ class SoundManager {
   }
 
   /**
+   * Normalize kid prompts: never stack "¡Atrapa X!" + "El X" back-to-back.
+   * Speaks only the learning audio once.
+   */
+  public async speakPrompt(
+    item: { audioText: string; audioLang?: string; es?: string },
+    style: 'word' | 'find' | 'catch' = 'word'
+  ): Promise<void> {
+    const word = (item.audioText || item.es || '').trim();
+    if (!word) return;
+    let phrase = word;
+    if (style === 'find') phrase = `¿Dónde está? ${word}`;
+    if (style === 'catch') phrase = `¡Atrapa! ${word}`;
+    // "find/catch" already includes the word once — do not speak word again after
+    await this.speakAsync(phrase, item.audioLang || 'es-ES', true);
+  }
+
+  /** Praise only — skips if the exact same line just played */
+  public async speakPraise(text: string): Promise<void> {
+    await this.speakAsync(text, 'es-ES', true);
+  }
+
+  /**
    * Speaks a single utterance and resolves when the voice finishes speaking.
    */
+  /** Soft punctuation so TTS breathes more naturally */
+  private humanizeSpeechText(text: string, lang: string): string {
+    let t = text.trim().replace(/\s+/g, ' ');
+    // Avoid shouting ALL CAPS (very robotic)
+    if (t === t.toUpperCase() && t.length > 2) {
+      t = t.toLowerCase();
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+    }
+    // Tiny pause after article-like words for Spanish
+    if (lang.toLowerCase().startsWith('es')) {
+      t = t.replace(/\b(El|La|Los|Las|Un|Una)\s+/g, '$1, ');
+    }
+    return t;
+  }
+
   public async speakAsync(
     text: string,
     lang: string = 'es-ES',
@@ -573,6 +627,17 @@ class SoundManager {
   ): Promise<void> {
     if (this.isMuted || !text) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const clean = this.humanizeSpeechText(text, lang);
+    if (!clean) return;
+    const key = `${lang}|${clean.toLowerCase()}`;
+    const now = Date.now();
+    // Prevent "el el perro" / double prompts within 1.6s
+    if (key === this.lastSpokenKey && now - this.lastSpokenAt < 1600) {
+      return;
+    }
+    this.lastSpokenKey = key;
+    this.lastSpokenAt = now;
 
     const myToken = interrupt ? ++this.speechToken : this.speechToken;
     if (interrupt) {

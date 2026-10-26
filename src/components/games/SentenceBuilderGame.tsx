@@ -195,13 +195,7 @@ export const SentenceBuilderGame: React.FC<Props> = ({
     const praise = getPersonalizedPraise(player.name, isFinal);
     setPraiseBanner(praise);
 
-    await sounds.speakSequence(
-      [
-        { text: target.audioText, lang: target.audioLang, pauseAfterMs: 120 },
-        { text: praise, lang: 'es-ES', pauseAfterMs: 160 },
-      ],
-      true
-    );
+    await sounds.speakPraise(praise);
 
     setPraiseBanner(null);
     if (isFinal) {

@@ -159,13 +159,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
       setPraiseBanner(praise);
 
       // CRITICAL: wait until word + praise finish speaking before advancing
-      await sounds.speakSequence(
-        [
-          { text: snack.audioText, lang: snack.audioLang, pauseAfterMs: 100 },
-          { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
-        ],
-        true
-      );
+      await sounds.speakPraise(praise);
 
       setPraiseBanner(null);
       if (isFinal) {

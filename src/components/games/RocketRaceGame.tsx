@@ -97,7 +97,7 @@ export const RocketRaceGame: React.FC<Props> = ({
 
       void (async () => {
         await new Promise((r) => setTimeout(r, 200));
-        await sounds.speakAsync(`¡Pilota hacia: ${picked.es}!`, 'es-ES', true);
+        await sounds.speakPrompt(picked, 'catch');
       })();
     },
     [items, selectedLevel, learnedWordIds, missedWordIds]
@@ -145,13 +145,7 @@ export const RocketRaceGame: React.FC<Props> = ({
       setPraiseBanner(praise);
 
       // Wait for full speech before advancing
-      await sounds.speakSequence(
-        [
-          { text: pod.audioText, lang: pod.audioLang, pauseAfterMs: 100 },
-          { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
-        ],
-        true
-      );
+      await sounds.speakPraise(praise);
 
       setPraiseBanner(null);
       if (isFinal) {

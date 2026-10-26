@@ -75,3 +75,77 @@
 .animate-slide-up {
   animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+
+/* === Next-level juice === */
+@keyframes pointNudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
+}
+.animate-point {
+  animation: pointNudge 0.8s ease-in-out infinite;
+}
+
+@keyframes juicePop {
+  0% { transform: translate(0, 0) scale(0.4); opacity: 1; }
+  100% { transform: translate(var(--dx, 40px), var(--dy, -60px)) scale(1.2); opacity: 0; }
+}
+.animate-juice {
+  animation: juicePop 0.65s ease-out forwards;
+}
+
+@keyframes rainbowShift {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+.animate-rainbow {
+  animation: rainbowShift 8s linear infinite;
+}
+
+@keyframes softGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.5); }
+  50% { box-shadow: 0 0 24px 8px rgba(250, 204, 21, 0.35); }
+}
+.glow-star {
+  animation: softGlow 2s ease-in-out infinite;
+}
+
+@keyframes roadDash {
+  from { background-position: 0 0; }
+  to { background-position: 0 40px; }
+}
+.road-dash-anim {
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 12px,
+    rgba(250, 204, 21, 0.85) 12px 22px
+  );
+  animation: roadDash 0.6s linear infinite;
+}
+
+/* Bigger touch targets helper */
+.kid-hit {
+  min-width: 64px;
+  min-height: 64px;
+}
+
+/* Premium card sheen */
+@keyframes sheen {
+  0% { background-position: -120% 0; }
+  100% { background-position: 220% 0; }
+}
+.card-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: sheen 3.5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}

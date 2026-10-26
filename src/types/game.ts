@@ -38,7 +38,9 @@ export type GameModeId =
   | 'drag_match'
   | 'sentence_builder'
   | 'vehicle_pilot'
-  | 'magic_puzzle';
+  | 'magic_puzzle'
+  | 'word_dash'
+  | 'crazy_kitchen'
 
 export type VehicleId = 'kart' | 'rocket' | 'ufo' | 'dragon' | 'broom' | 'cyber';
 

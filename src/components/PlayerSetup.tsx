@@ -22,6 +22,53 @@ import { CameraCaptureModal } from './CameraCaptureModal';
 import { GarageShopModal } from './GarageShopModal';
 import { SmartLearningModal } from './SmartLearningModal';
 import { sounds } from '../audio/soundManager';
+import { MascotBuddy } from './common/MascotBuddy';
+
+/** World map islands — groups modes so kids pick a place, then a game */
+const WORLD_ISLANDS: {
+  id: string;
+  title: string;
+  emoji: string;
+  color: string;
+  modeIds: GameModeId[];
+}[] = [
+  {
+    id: 'action',
+    title: 'Acción',
+    emoji: '⚡',
+    color: '#f43f5e',
+    modeIds: ['monster_feeder', 'slingshot_magic', 'word_dash', 'rocket_race'],
+  },
+  {
+    id: 'words',
+    title: 'Palabras',
+    emoji: '📚',
+    color: '#8b5cf6',
+    modeIds: ['lang_spanish_words', 'lang_spanish_abc', 'drag_match', 'sentence_builder', 'magic_puzzle'],
+  },
+  {
+    id: 'world',
+    title: 'Idiomas',
+    emoji: '🌍',
+    color: '#0ea5e9',
+    modeIds: ['lang_arabic', 'lang_french', 'safari_adventure'],
+  },
+  {
+    id: 'flanders',
+    title: 'Flandes',
+    emoji: '🇧🇪',
+    color: '#eab308',
+    modeIds: ['flemish_world', 'lang_flemish'],
+  },
+  {
+    id: 'kitchen',
+    title: 'Cocina',
+    emoji: '🍳',
+    color: '#f97316',
+    modeIds: ['crazy_kitchen'],
+  },
+];
+
 
 interface Props {
   players: PlayerConfig[];
@@ -68,6 +115,20 @@ export const PlayerSetup: React.FC<Props> = ({
   const [isShopOpen, setIsShopOpen] = useState<boolean>(false);
   const [isSmartModalOpen, setIsSmartModalOpen] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [islandId, setIslandId] = useState<string>(() => {
+    const found = WORLD_ISLANDS.find((isl) => isl.modeIds.includes(gameMode));
+    return found?.id || WORLD_ISLANDS[0].id;
+  });
+  const [galleryIndex, setGalleryIndex] = useState<number>(0);
+  const mascotMood =
+    gameMode === 'word_dash' || gameMode === 'crazy_kitchen' || gameMode === 'magic_puzzle'
+      ? 'cheer'
+      : 'idle';
+
+  const currentIsland = WORLD_ISLANDS.find((i) => i.id === islandId) || WORLD_ISLANDS[0];
+  const islandModes = currentIsland.modeIds
+    .map((id) => GAME_MODES.find((m) => m.id === id))
+    .filter(Boolean) as typeof GAME_MODES;
 
   const handleUpdateName = (index: number, newName: string) => {
     setPlayers((prev) =>
@@ -335,74 +396,148 @@ export const PlayerSetup: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* Premium horizontal game carousel (slide) */}
-        <div className="flex-1 min-h-0 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between px-1">
-            <div className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-white/70">
-              Desliza y elige tu aventura
-            </div>
-            <div className="text-[10px] font-bold text-white/50">
-              {GAME_MODES.findIndex((m) => m.id === gameMode) + 1}/{GAME_MODES.length}
+                {/* World map: islands + game with arrow buttons */}
+        <div className="flex-1 min-h-0 flex flex-col gap-2 justify-center">
+          <div className="flex items-center justify-center gap-2">
+            <MascotBuddy mood={mascotMood as any} size="sm" />
+            <div className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-white/85">
+              1. Elige isla · 2. Elige juego
             </div>
           </div>
-          <div
-            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 pt-1 px-1 -mx-1"
-            style={{ WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory' }}
-          >
-            {GAME_MODES.map((mode) => {
-              const isSelected = mode.id === gameMode;
+
+          {/* Islands row */}
+          <div className="flex gap-2 overflow-x-auto pb-1 px-1 justify-center">
+            {WORLD_ISLANDS.map((isl) => {
+              const active = isl.id === islandId;
               return (
                 <button
-                  key={mode.id}
-                  onClick={() => handleSelectGame(mode.id, mode.title)}
-                  className={`snap-center shrink-0 w-[78%] sm:w-[240px] max-w-[280px] rounded-[1.75rem] p-4 text-left transition-all border-b-8 btn-squishy relative overflow-hidden ${
-                    isSelected
-                      ? 'ring-4 ring-yellow-300 scale-[1.03] shadow-2xl border-yellow-400'
-                      : 'opacity-90 hover:opacity-100 border-black/20'
-                  }`}
-                  style={{
-                    background: `linear-gradient(145deg, ${mode.color} 0%, ${mode.color}cc 55%, #0f172a 140%)`,
+                  key={isl.id}
+                  type="button"
+                  onClick={() => {
+                    sounds.sfxPop();
+                    setIslandId(isl.id);
+                    setGalleryIndex(0);
+                    const first = GAME_MODES.find((m) => m.id === isl.modeIds[0]);
+                    if (first) {
+                      setGameMode(first.id);
+                      void sounds.speakAsync(isl.title, 'es-ES', true);
+                    }
                   }}
+                  className={`shrink-0 flex flex-col items-center px-3 py-2 rounded-2xl border-b-4 btn-squishy min-w-[72px] ${
+                    active
+                      ? 'bg-white text-slate-900 border-yellow-400 ring-2 ring-yellow-300 scale-105'
+                      : 'bg-white/15 text-white border-white/20'
+                  }`}
                 >
-                  <div className="absolute -right-4 -top-4 text-7xl opacity-20 pointer-events-none">
-                    {mode.icon}
-                  </div>
-                  <div className="relative z-10 flex flex-col gap-2 min-h-[132px]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur flex items-center justify-center text-3xl shadow-inner border border-white/30">
-                        {mode.icon}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[10px] font-black uppercase tracking-wide text-white/80 truncate">
-                          {mode.badge}
-                        </div>
-                        <div className="text-lg font-black text-white leading-tight drop-shadow">
-                          {mode.title}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-[11px] font-bold text-white/90 leading-snug line-clamp-2">
-                      {mode.tagline}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase bg-white/20 text-white px-2 py-1 rounded-lg">
-                        {mode.mechanicBadge}
-                      </span>
-                      {isSelected && (
-                        <span className="text-[10px] font-black bg-yellow-300 text-slate-900 px-2 py-1 rounded-lg">
-                          ✓ ELEGIDO
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <span className="text-2xl leading-none">{isl.emoji}</span>
+                  <span className="text-[10px] font-black mt-1">{isl.title}</span>
                 </button>
               );
             })}
           </div>
+
+          {/* Game card + arrows */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              aria-label="Anterior"
+              onClick={() => {
+                sounds.sfxPop();
+                setGalleryIndex((i) => {
+                  const next = (i - 1 + islandModes.length) % islandModes.length;
+                  const mode = islandModes[next];
+                  if (mode) {
+                    setGameMode(mode.id);
+                    void sounds.speakAsync(mode.title, 'es-ES', true);
+                  }
+                  return next;
+                });
+              }}
+              className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white text-slate-800 shadow-xl border-b-4 border-slate-300 flex items-center justify-center btn-squishy"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+
+            <div className="flex-1 min-w-0">
+              {(() => {
+                const mode = islandModes[galleryIndex] || islandModes[0];
+                if (!mode) return null;
+                const isSelected = mode.id === gameMode;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => handleSelectGame(mode.id, mode.title)}
+                    className={`w-full rounded-[1.75rem] p-4 text-left border-b-8 btn-squishy relative overflow-hidden card-sheen ${
+                      isSelected
+                        ? 'ring-4 ring-yellow-300 scale-[1.02] shadow-2xl border-yellow-400'
+                        : 'border-black/20'
+                    }`}
+                    style={{
+                      background: `linear-gradient(145deg, ${mode.color} 0%, ${mode.color}cc 50%, #0f172a 140%)`,
+                    }}
+                  >
+                    <div className="absolute -right-3 -top-3 text-6xl opacity-25">{mode.icon}</div>
+                    <div className="relative z-10 flex flex-col gap-2 min-h-[120px]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-2xl bg-white/25 flex items-center justify-center text-3xl border border-white/30">
+                          {mode.icon}
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-black text-white/80 uppercase">{mode.badge}</div>
+                          <div className="text-lg font-black text-white leading-tight">{mode.title}</div>
+                        </div>
+                      </div>
+                      <p className="text-xs font-bold text-white/95">{mode.tagline}</p>
+                      <div className="mt-auto text-[10px] font-black text-white/70">
+                        {galleryIndex + 1}/{islandModes.length} en {currentIsland.title}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })()}
+            </div>
+
+            <button
+              type="button"
+              aria-label="Siguiente"
+              onClick={() => {
+                sounds.sfxPop();
+                setGalleryIndex((i) => {
+                  const next = (i + 1) % Math.max(1, islandModes.length);
+                  const mode = islandModes[next];
+                  if (mode) {
+                    setGameMode(mode.id);
+                    void sounds.speakAsync(mode.title, 'es-ES', true);
+                  }
+                  return next;
+                });
+              }}
+              className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white text-slate-800 shadow-xl border-b-4 border-slate-300 flex items-center justify-center btn-squishy"
+            >
+              <ArrowRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="flex justify-center gap-1.5 flex-wrap">
+            {islandModes.map((m, i) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => {
+                  sounds.sfxPop();
+                  setGalleryIndex(i);
+                  setGameMode(m.id);
+                }}
+                className={`h-2.5 rounded-full transition-all ${
+                  i === galleryIndex ? 'w-6 bg-yellow-300' : 'w-2.5 bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* 4. Giant Start Button */}
+{/* 4. Giant Start Button */}
       <div className="w-full max-w-4xl mx-auto pt-1 shrink-0">
         <button
           onClick={() => {

@@ -199,13 +199,13 @@ export const FrenchChefGame: React.FC<Props> = ({
             <div className="text-[11px] font-black text-blue-600 uppercase tracking-wider">
               Francés Niv. {selectedLevel} · {correctCount}/{targetCorrect}
             </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-900 truncate">
-              {currentOrder?.targetText}
+            <div className="text-base sm:text-xl font-black text-slate-900 leading-tight break-words whitespace-normal">
+              {currentOrder?.audioText || currentOrder?.es}
             </div>
-            <div className="text-xs font-bold text-slate-500 flex items-center gap-1.5 truncate">
-              <span>{currentOrder?.subText}</span>
+            <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-snug break-words whitespace-normal">
+              {currentOrder?.subText}
               {showHint && currentOrder && (
-                <span className="text-blue-700 font-black">· ({currentOrder.es})</span>
+                <span className="text-blue-700 font-black"> · {currentOrder.es}</span>
               )}
             </div>
           </div>
@@ -226,7 +226,7 @@ export const FrenchChefGame: React.FC<Props> = ({
           )}
           <button
             onClick={() =>
-              currentOrder && sounds.speak(currentOrder.audioText, currentOrder.audioLang)
+              currentOrder && void sounds.speakAsync(currentOrder.audioText, currentOrder.audioLang, true)
             }
             className="p-3.5 rounded-2xl bg-blue-600 text-white shadow-lg border-b-4 border-blue-800 btn-squishy"
             aria-label="Escuchar en francés"
@@ -266,7 +266,7 @@ export const FrenchChefGame: React.FC<Props> = ({
               <span className="text-4xl sm:text-5xl mb-1">
                 {plate.status === 'served' ? '🍽️✨' : plate.item.emoji}
               </span>
-              <span className="text-[10px] sm:text-[11px] font-black text-slate-700 uppercase tracking-tight truncate max-w-[90%]">
+              <span className="text-[9px] sm:text-[11px] font-black text-slate-700 tracking-tight max-w-[92%] text-center leading-tight line-clamp-2 normal-case">
                 {plate.item.es}
               </span>
             </div>

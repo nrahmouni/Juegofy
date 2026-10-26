@@ -157,13 +157,7 @@ export const ArabicBubbleGame: React.FC<Props> = ({
       onMarkWordLearned(currentChallenge.id);
 
       void (async () => {
-        await sounds.speakSequence(
-          [
-            { text: currentChallenge.audioText, lang: currentChallenge.audioLang, pauseAfterMs: 100 },
-            { text: praise, lang: 'es-ES', pauseAfterMs: 150 },
-          ],
-          true
-        );
+        await sounds.speakPraise(praise);
         setPraiseBanner(null);
         if (isFinalWin) {
           setGameState('done');

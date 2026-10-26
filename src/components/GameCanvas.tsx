@@ -25,6 +25,9 @@ import { DragMatchGame } from './games/DragMatchGame';
 import { SentenceBuilderGame } from './games/SentenceBuilderGame';
 import { VehiclePilotGame } from './games/VehiclePilotGame';
 import { MagicPuzzleGame } from './games/MagicPuzzleGame';
+import { WordDashGame } from './games/WordDashGame';
+import { CrazyKitchenGame } from './games/CrazyKitchenGame';
+import { FlemishWorldHub } from './games/FlemishWorldHub';
 import { X, Volume2, VolumeX, Star, BookOpen, Check } from 'lucide-react';
 
 interface Props {
@@ -452,6 +455,57 @@ export const GameCanvas: React.FC<Props> = ({
           )}
           {gameMode === 'magic_puzzle' && (
             <MagicPuzzleGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'word_dash' && (
+            <WordDashGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'crazy_kitchen' && (
+            <CrazyKitchenGame
+              player={player}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'flemish_world' && (
+            <FlemishWorldHub
               player={player}
               selectedLevel={selectedLevel}
               learnedWordIds={learnedWordIds}
