@@ -7,6 +7,7 @@ import { GameCanvas } from './components/GameCanvas';
 import { TurnResultModal } from './components/TurnResultModal';
 import { PodiumScreen } from './components/PodiumScreen';
 import { sounds } from './audio/soundManager';
+import { addIslandStar, modeToIsland, touchStreak, bumpDailyMission } from './data/progress';
 
 const STORAGE_KEY = 'mundo_magico_players_v2';
 const LEARNED_WORDS_KEY = 'mundo_magico_learned_words_v2';
@@ -135,7 +136,7 @@ export default function App() {
   }, []);
 
   // Game Flow State
-  const [gameState, setGameState] = useState<'SETUP' | 'PLAYING' | 'PODIUM'>('SETUP');
+  const [gameState, setGameState] = useState<'SETUP' | 'TURN_INTRO' | 'PLAYING' | 'PODIUM'>('SETUP');
   const [currentTurn, setCurrentTurn] = useState<number>(0);
   const [turnResults, setTurnResults] = useState<PlayerResult[]>([]);
   const [activeTurnResult, setActiveTurnResult] = useState<PlayerResult | null>(null);
@@ -193,7 +194,7 @@ export default function App() {
     setCurrentTurn(0);
     setTurnResults([]);
     setActiveTurnResult(null);
-    setGameState('PLAYING');
+    setGameState(players.length > 1 ? 'TURN_INTRO' : 'PLAYING');
     sounds.startBGM(selectedTheme);
   };
 
@@ -208,6 +209,13 @@ export default function App() {
       )
     );
 
+    // Free meta-progress (islands, streak, daily mission)
+    try {
+      addIslandStar(modeToIsland(gameMode), Math.max(1, result.stars || 1));
+      touchStreak();
+      if ((result.wordsLearned || 0) > 0 || result.ok) bumpDailyMission(1);
+    } catch {}
+
     setActiveTurnResult(updatedResult);
   };
 
@@ -220,6 +228,7 @@ export default function App() {
 
     if (currentTurn + 1 < numPlayers) {
       setCurrentTurn((prev) => prev + 1);
+      setGameState('TURN_INTRO');
     } else {
       if (updated.some((r) => r.ok) && selectedLevel < MAX_GAME_LEVEL) {
         setSelectedLevel((prev) => Math.min(MAX_GAME_LEVEL, prev + 1));
@@ -266,6 +275,49 @@ export default function App() {
             selectedTheme={selectedTheme}
             setSelectedTheme={setSelectedTheme}
           />
+        )}
+
+
+        {/* TURN INTRO — clear "now playing" for local multiplayer */}
+        {gameState === 'TURN_INTRO' && (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 px-6 text-center">
+            <div className="text-[11px] font-black uppercase tracking-widest text-indigo-300 mb-3">
+              Turno {currentTurn + 1} / {numPlayers}
+            </div>
+            <div
+              className="w-28 h-28 rounded-[2rem] flex items-center justify-center text-6xl shadow-2xl border-b-8 mb-4 bg-white"
+              style={{ borderColor: activePlayer.color }}
+            >
+              {activePlayer.photoUrl ? (
+                <img src={activePlayer.photoUrl} alt="" className="w-full h-full object-cover rounded-[1.5rem]" />
+              ) : (
+                activePlayer.fallbackEmoji
+              )}
+            </div>
+            <h2 className="text-3xl font-black text-white mb-2">{activePlayer.name}</h2>
+            <p className="text-sm font-bold text-white/70 mb-8">¡Te toca jugar!</p>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.sfxPop();
+                void sounds.speakAsync(`¡${activePlayer.name}, te toca!`, 'es-ES', true);
+                setGameState('PLAYING');
+              }}
+              className="w-full max-w-xs py-4 rounded-2xl bg-gradient-to-r from-emerald-400 to-indigo-500 text-white font-black text-xl border-b-8 border-indigo-900 shadow-2xl"
+            >
+              ¡Empezar!
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.stopBGM();
+                setGameState('SETUP');
+              }}
+              className="mt-4 text-xs font-bold text-white/50"
+            >
+              Volver al menú
+            </button>
+          </div>
         )}
 
         {/* 2. PLAYING CANVAS */}
@@ -317,14 +369,14 @@ export default function App() {
               setCurrentTurn(0);
               setTurnResults([]);
               setActiveTurnResult(null);
-              setGameState('PLAYING');
+              setGameState(players.length > 1 ? 'TURN_INTRO' : 'PLAYING');
               sounds.startBGM(selectedTheme);
             }}
             onPlayAgainNew={() => {
               setCurrentTurn(0);
               setTurnResults([]);
               setActiveTurnResult(null);
-              setGameState('PLAYING');
+              setGameState(players.length > 1 ? 'TURN_INTRO' : 'PLAYING');
               sounds.startBGM(selectedTheme);
             }}
             onGoToMenu={() => {

@@ -149,3 +149,12 @@
   pointer-events: none;
   border-radius: inherit;
 }
+
+/* Hide scrollbars on horizontal chip rows (mobile) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

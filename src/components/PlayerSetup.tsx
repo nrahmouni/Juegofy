@@ -24,6 +24,7 @@ import { GarageShopModal } from './GarageShopModal';
 import { SmartLearningModal } from './SmartLearningModal';
 import { sounds } from '../audio/soundManager';
 import { MascotBuddy } from './common/MascotBuddy';
+import { getDailyMission, loadIslandStars, loadStreak } from '../data/progress';
 
 /** World map islands — groups modes so kids pick a place, then a game */
 const WORLD_ISLANDS: {
@@ -125,6 +126,9 @@ export const PlayerSetup: React.FC<Props> = ({
     return found?.id || WORLD_ISLANDS[0].id;
   });
   const [galleryIndex, setGalleryIndex] = useState<number>(0);
+  const [islandStars, setIslandStars] = useState(() => loadIslandStars());
+  const mission = getDailyMission();
+  const streak = loadStreak();
   const mascotMood =
     gameMode === 'word_dash' || gameMode === 'crazy_kitchen' || gameMode === 'magic_puzzle'
       ? 'cheer'
@@ -191,170 +195,104 @@ export const PlayerSetup: React.FC<Props> = ({
   };
 
   return (
-    <div className="relative w-full h-[100dvh] flex flex-col justify-between bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 overflow-hidden px-2.5 py-2.5 sm:px-6 sm:py-4 select-none">
-      {/* 1. Compact Header */}
-      <div className="flex justify-between items-center w-full max-w-4xl mx-auto shrink-0">
-        <div>
-          <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white leading-none">
-            MUNDO <span className="text-yellow-400">MÁGICO</span>
-          </h1>
-          <p className="text-[10px] sm:text-xs font-bold text-indigo-200/80">
-            Nivel {selectedLevel}/{MAX_GAME_LEVEL} · {selectedLevel >= 6 ? '✨ Frases y Oraciones' : '📚 Vocabulario'}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            onClick={() => {
-              sounds.sfxPop();
-              setIsSmartModalOpen(true);
-            }}
-            className="px-2.5 py-2 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-black text-xs flex items-center gap-1.5 btn-squishy"
-            title="Aprendizaje Inteligente y Diccionario"
-          >
-            <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">IA Progreso</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px]">
-              {learnedWordIds.length}
-            </span>
-          </button>
-          <button
-            onClick={() => {
-              sounds.sfxPop();
-              onToggleMute();
-            }}
-            className="p-2 sm:p-2.5 rounded-2xl bg-white/10 text-white border border-white/15 btn-squishy"
-            aria-label="Silenciar o activar audio"
-          >
-            {isMuted ? <VolumeX className="w-5 h-5 text-rose-400" /> : <Volume2 className="w-5 h-5 text-emerald-400" />}
-          </button>
-          <button
-            onClick={() => {
-              sounds.sfxPop();
-              setIsShopOpen(true);
-            }}
-            className="p-2 sm:p-2.5 rounded-2xl bg-white/10 text-yellow-400 border border-white/15 btn-squishy"
-            aria-label="Tienda"
-          >
-            <ShoppingBag className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => {
-              sounds.sfxPop();
-              setShowSettings(true);
-            }}
-            className="p-2 sm:p-2.5 rounded-2xl bg-white/10 text-white border border-white/15 btn-squishy"
-            aria-label="Ajustes"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="relative w-full h-[100dvh] max-h-[100dvh] flex flex-col bg-slate-950 overflow-hidden select-none">
+      {/* Decorative canvas-like background (CSS orbs + SVG stars) — no external images */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -top-24 -left-16 w-64 h-64 rounded-full bg-fuchsia-600/30 blur-3xl" />
+        <div className="absolute top-1/3 -right-20 w-72 h-72 rounded-full bg-cyan-500/25 blur-3xl" />
+        <div className="absolute bottom-10 left-1/4 w-56 h-56 rounded-full bg-amber-400/20 blur-3xl" />
+        <svg className="absolute inset-0 w-full h-full opacity-40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.2" fill="white" opacity="0.25" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots)" />
+          <circle cx="12%" cy="18%" r="3" fill="#fde047" />
+          <circle cx="88%" cy="22%" r="2" fill="#a5f3fc" />
+          <circle cx="70%" cy="8%" r="2.5" fill="#f9a8d4" />
+          <path d="M20 80 L22 86 L28 86 L23 90 L25 96 L20 92 L15 96 L17 90 L12 86 L18 86 Z" fill="#fde047" opacity="0.7" transform="translate(40, -20) scale(0.45)" />
+        </svg>
       </div>
 
-      {/* 2. Players Turn Order & Profile Editor */}
-      <div className="w-full max-w-4xl mx-auto my-1 shrink-0">
-        <div className="flex items-center justify-between mb-1 px-1">
-          <span className="text-[10px] sm:text-[11px] font-black text-indigo-200 uppercase tracking-wider">
-            Jugadores ({players.length}/4) — Toca el nombre para cambiarlo
-          </span>
-          {players.length < 4 && (
-            <button
-              onClick={handleAddPlayer}
-              className="px-2.5 py-1 rounded-xl bg-emerald-500 text-white font-black text-[11px] flex items-center gap-1 shadow-md btn-squishy"
-            >
-              <Plus className="w-3.5 h-3.5" /> Añadir
+      {/* Safe area padding */}
+      <div className="relative z-10 flex flex-col h-full px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] gap-2 max-w-lg mx-auto w-full">
+
+        {/* HEADER compact */}
+        <header className="flex items-center justify-between shrink-0 gap-2">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-black text-white leading-none tracking-tight">
+              Mundo <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-400">Mágico</span>
+            </h1>
+            <p className="text-[10px] font-bold text-white/50 mt-0.5">Nivel {selectedLevel} · {learnedWordIds.length} palabras</p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button type="button" onClick={() => { sounds.sfxPop(); setIsSmartModalOpen(true); }} className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-emerald-300" aria-label="Progreso">
+              <Brain className="w-4 h-4" />
             </button>
-          )}
-        </div>
+            <button type="button" onClick={() => { sounds.sfxPop(); onToggleMute(); }} className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center" aria-label="Sonido">
+              {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+            </button>
+            <button type="button" onClick={() => { sounds.sfxPop(); setIsShopOpen(true); }} className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-amber-300" aria-label="Tienda">
+              <ShoppingBag className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => { sounds.sfxPop(); setShowSettings(true); }} className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white" aria-label="Ajustes">
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {players.map((player, idx) => (
-            <div
-              key={player.id}
-              className="relative bg-white rounded-2xl sm:rounded-3xl p-2 shadow-xl border-b-4 flex items-center sm:flex-col gap-2 sm:gap-1 transition-all"
-              style={{ borderBottomColor: player.color }}
-            >
-              {/* Turn Badge */}
+        {/* PLAYERS — single horizontal strip (mobile first) */}
+        <section className="shrink-0">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
+            {players.map((player, idx) => (
               <div
-                className="absolute -top-1.5 -left-1 px-2 py-0.5 rounded-full text-[9px] font-black text-white shadow z-10"
-                style={{ backgroundColor: player.color }}
+                key={player.id}
+                className="shrink-0 flex items-center gap-1.5 bg-white rounded-2xl pl-1 pr-2 py-1 shadow-lg border-b-4 min-w-0"
+                style={{ borderBottomColor: player.color }}
               >
-                {idx + 1}º
-              </div>
-
-              {/* Delete Player Button */}
-              {players.length > 1 && (
                 <button
-                  onClick={() => handleRemovePlayer(player.id)}
-                  className="absolute top-1 right-1 p-1 bg-rose-100 text-rose-600 hover:bg-rose-500 hover:text-white rounded-full transition-colors btn-squishy z-10"
-                  aria-label={`Eliminar a ${player.name}`}
+                  type="button"
+                  onClick={() => { sounds.sfxPop(); setEditingPlayerIndex(idx); }}
+                  className="w-9 h-9 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center text-lg border border-slate-200"
                 >
-                  <Trash2 className="w-3 h-3" />
+                  {player.photoUrl ? (
+                    <img src={player.photoUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{player.fallbackEmoji}</span>
+                  )}
                 </button>
-              )}
-
-              {/* Avatar & Camera Trigger */}
-              <button
-                onClick={() => {
-                  sounds.sfxPop();
-                  setEditingPlayerIndex(idx);
-                }}
-                className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-2xl overflow-hidden shrink-0 btn-squishy"
-              >
-                {player.photoUrl ? (
-                  <img src={player.photoUrl} alt={player.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span>{player.fallbackEmoji}</span>
-                )}
-                {player.sticker !== 'none' && (
-                  <span className="absolute -top-1 -right-1 text-sm">
-                    {STICKERS.find((s) => s.id === player.sticker)?.icon}
-                  </span>
-                )}
-                <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-0.5 rounded-tl-md">
-                  <Camera className="w-2.5 h-2.5" />
-                </div>
-              </button>
-
-              <div className="flex-1 min-w-0 w-full flex flex-col">
                 <input
-                  type="text"
                   value={player.name}
                   onChange={(e) => handleUpdateName(idx, e.target.value)}
-                  aria-label="Nombre del jugador"
-                  className="w-full bg-slate-100 py-0.5 px-1.5 rounded-lg text-center font-black text-xs text-slate-900 uppercase outline-none border-2 border-transparent focus:border-indigo-500 focus:bg-white"
+                  className="w-[4.5rem] bg-transparent text-[11px] font-black text-slate-800 uppercase outline-none"
+                  maxLength={12}
+                  aria-label={`Nombre jugador ${idx + 1}`}
                 />
-
-                <div className="flex items-center justify-between w-full mt-1">
-                  <button
-                    onClick={() => handleMovePlayer(idx, 'left')}
-                    disabled={idx === 0}
-                    className="p-0.5 rounded bg-slate-100 text-slate-600 disabled:opacity-20 btn-squishy"
-                    aria-label="Mover antes"
-                  >
-                    <ArrowLeft className="w-3 h-3" />
+                {players.length > 1 && (
+                  <button type="button" onClick={() => handleRemovePlayer(player.id)} className="text-rose-400 p-0.5" aria-label="Quitar">
+                    <Trash2 className="w-3 h-3" />
                   </button>
-                  <span className="text-[8px] font-black text-slate-400 uppercase">Turno {idx + 1}</span>
-                  <button
-                    onClick={() => handleMovePlayer(idx, 'right')}
-                    disabled={idx === players.length - 1}
-                    className="p-0.5 rounded bg-slate-100 text-slate-600 disabled:opacity-20 btn-squishy"
-                    aria-label="Mover después"
-                  >
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
+                )}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+            {players.length < 4 && (
+              <button
+                type="button"
+                onClick={handleAddPlayer}
+                className="shrink-0 w-9 h-9 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg border-b-4 border-emerald-700"
+                aria-label="Añadir jugador"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </section>
 
-            {/* Practice language for all mechanic games */}
-      <div className="w-full max-w-4xl mx-auto shrink-0 px-1 mb-1">
-        <div className="flex items-center gap-2 bg-white/15 rounded-2xl px-2.5 py-1.5 border border-white/15">
-          <span className="text-[10px] font-black text-yellow-300 uppercase shrink-0">Idioma juego:</span>
-          <div className="flex gap-1.5 flex-1 overflow-x-auto">
+        {/* LANGUAGE — big touch targets */}
+        <section className="shrink-0">
+          <div className="text-[9px] font-black uppercase tracking-widest text-yellow-300/90 mb-1 px-0.5">Idioma del juego</div>
+          <div className="grid grid-cols-4 gap-1.5">
             {PRACTICE_LANG_OPTIONS.map((l) => (
               <button
                 key={l.id}
@@ -362,84 +300,70 @@ export const PlayerSetup: React.FC<Props> = ({
                 onClick={() => {
                   sounds.sfxPop();
                   setPracticeLang(l.id);
-                  void sounds.speakAsync(l.label, 'es-ES', true);
                 }}
-                className={`shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-black border-b-4 btn-squishy flex items-center gap-1 ${
+                className={`rounded-2xl py-2 flex flex-col items-center gap-0.5 border-b-4 transition-transform active:scale-95 ${
                   practiceLang === l.id
-                    ? 'bg-yellow-300 text-slate-900 border-yellow-600 scale-105'
-                    : 'bg-white/20 text-white border-transparent'
+                    ? 'bg-yellow-300 text-slate-900 border-yellow-600 scale-[1.03] shadow-lg'
+                    : 'bg-white/10 text-white border-white/10'
                 }`}
               >
-                <span>{l.flag}</span>
-                <span className="hidden sm:inline">{l.label}</span>
+                <span className="text-xl leading-none">{l.flag}</span>
+                <span className="text-[9px] font-black">{l.short}</span>
               </button>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* 3. 8-Level Selector (1-5 Words, 6-8 Phrases) & 8 Mini-Games Grid */}
-      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col justify-between min-h-0 my-1">
-        {/* Level Selector Bar */}
-        <div className="flex items-center justify-between bg-white/10 rounded-2xl px-2.5 py-1.5 mb-1.5 border border-white/10 shrink-0 gap-1 overflow-x-auto">
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] font-black text-yellow-400 uppercase mr-0.5">Nivel:</span>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((lvl) => {
-              const isPhraseLvl = lvl >= 6;
-              const isSelected = selectedLevel === lvl;
-              return (
-                <button
-                  key={lvl}
-                  onClick={() => {
-                    sounds.sfxPop();
-                    setSelectedLevel(lvl);
-                    sounds.speak(
-                      isPhraseLvl ? `Nivel ${lvl}, Frases Mágicas` : `Nivel ${lvl}`,
-                      'es-ES'
-                    );
-                  }}
-                  className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl font-black text-xs transition-all btn-squishy flex items-center justify-center ${
-                    isSelected
-                      ? isPhraseLvl
-                        ? 'bg-pink-500 text-white scale-110 shadow-md ring-2 ring-yellow-300'
-                        : 'bg-yellow-400 text-slate-950 scale-110 shadow-md'
-                      : isPhraseLvl
-                      ? 'bg-pink-500/25 text-pink-200 hover:bg-pink-500/40'
-                      : 'bg-white/10 text-white/75 hover:bg-white/20'
-                  }`}
-                  title={isPhraseLvl ? `Nivel ${lvl}: Frases y Oraciones` : `Nivel ${lvl}: Vocabulario`}
-                >
-                  {lvl}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={() => {
-              sounds.sfxPop();
-              onResetProgress();
-              sounds.speak('Palabras y nivel reiniciados', 'es-ES');
-            }}
-            className="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 font-bold text-[10px] flex items-center gap-1 btn-squishy shrink-0"
-            title="Reiniciar palabras aprendidas y volver al Nivel 1"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Reset ({learnedWordIds.length})</span>
-          </button>
-        </div>
-
-                {/* World map: islands + game with arrow buttons */}
-        <div className="flex-1 min-h-0 flex flex-col gap-2 justify-center">
-          <div className="flex items-center justify-center gap-2">
-            <MascotBuddy mood={mascotMood as any} size="sm" />
-            <div className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-white/85">
-              1. Elige isla · 2. Elige juego
+        {/* Daily mission + streak (free retention) */}
+        <section className="shrink-0 rounded-2xl bg-white/10 border border-white/15 px-3 py-2 flex items-center gap-2">
+          <div className="text-xl">🎯</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[9px] font-black uppercase text-amber-300">Misión de hoy</div>
+            <div className="text-[11px] font-bold text-white truncate">{mission.label}</div>
+            <div className="h-1.5 mt-1 rounded-full bg-white/15 overflow-hidden">
+              <div
+                className="h-full bg-amber-400 rounded-full transition-all"
+                style={{ width: `${Math.min(100, (mission.progress / mission.goal) * 100)}%` }}
+              />
             </div>
           </div>
+          <div className="text-center shrink-0">
+            <div className="text-[10px] font-black text-orange-300">🔥 {streak.count}</div>
+            <div className="text-[8px] font-bold text-white/50">días</div>
+          </div>
+        </section>
 
-          {/* Islands row */}
-          <div className="flex gap-2 overflow-x-auto pb-1 px-1 justify-center">
+        {/* LEVEL chips compact */}
+        <section className="shrink-0 flex items-center gap-1 overflow-x-auto no-scrollbar">
+          <span className="text-[9px] font-black text-white/60 uppercase shrink-0">Nivel</span>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((lvl) => (
+            <button
+              key={lvl}
+              type="button"
+              onClick={() => {
+                sounds.sfxPop();
+                setSelectedLevel(lvl);
+              }}
+              className={`w-7 h-7 rounded-lg text-[11px] font-black shrink-0 ${
+                selectedLevel === lvl
+                  ? lvl >= 6
+                    ? 'bg-pink-500 text-white ring-2 ring-yellow-300'
+                    : 'bg-yellow-400 text-slate-900'
+                  : 'bg-white/10 text-white/70'
+              }`}
+            >
+              {lvl}
+            </button>
+          ))}
+        </section>
+
+        {/* ISLANDS */}
+        <section className="shrink-0">
+          <div className="flex items-center gap-1.5 mb-1.5 px-0.5">
+            <MascotBuddy mood={mascotMood as any} size="sm" />
+            <span className="text-[10px] font-black text-white/80 uppercase tracking-wide">1. Isla · 2. Juego</span>
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
             {WORLD_ISLANDS.map((isl) => {
               const active = isl.id === islandId;
               return (
@@ -451,142 +375,140 @@ export const PlayerSetup: React.FC<Props> = ({
                     setIslandId(isl.id);
                     setGalleryIndex(0);
                     const first = GAME_MODES.find((m) => m.id === isl.modeIds[0]);
-                    if (first) {
-                      setGameMode(first.id);
-                      void sounds.speakAsync(isl.title, 'es-ES', true);
-                    }
+                    if (first) setGameMode(first.id);
                   }}
-                  className={`shrink-0 flex flex-col items-center px-3 py-2 rounded-2xl border-b-4 btn-squishy min-w-[72px] ${
+                  className={`rounded-2xl py-2 px-0.5 flex flex-col items-center border-b-4 transition-all ${
                     active
-                      ? 'bg-white text-slate-900 border-yellow-400 ring-2 ring-yellow-300 scale-105'
-                      : 'bg-white/15 text-white border-white/20'
+                      ? 'bg-white text-slate-900 border-yellow-400 shadow-xl scale-105'
+                      : 'bg-white/10 text-white border-transparent'
                   }`}
                 >
-                  <span className="text-2xl leading-none">{isl.emoji}</span>
-                  <span className="text-[10px] font-black mt-1">{isl.title}</span>
+                  <span className="text-xl leading-none">{isl.emoji}</span>
+                  <span className="text-[8px] font-black mt-0.5 truncate max-w-full">{isl.title}</span>
+                  {(islandStars[isl.id] || 0) > 0 && (
+                    <span className="text-[8px] font-black text-amber-300">⭐{islandStars[isl.id]}</span>
+                  )}
                 </button>
               );
             })}
           </div>
+        </section>
 
-          {/* Game card + arrows */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label="Anterior"
-              onClick={() => {
-                sounds.sfxPop();
-                setGalleryIndex((i) => {
-                  const next = (i - 1 + islandModes.length) % islandModes.length;
-                  const mode = islandModes[next];
-                  if (mode) {
-                    setGameMode(mode.id);
-                    void sounds.speakAsync(mode.title, 'es-ES', true);
-                  }
-                  return next;
-                });
-              }}
-              className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white text-slate-800 shadow-xl border-b-4 border-slate-300 flex items-center justify-center btn-squishy"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
+        {/* GAME CARD — flex grow, center */}
+        <section className="flex-1 min-h-0 flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Anterior"
+            onClick={() => {
+              sounds.sfxPop();
+              setGalleryIndex((i) => {
+                const next = (i - 1 + islandModes.length) % Math.max(1, islandModes.length);
+                const mode = islandModes[next];
+                if (mode) {
+                  setGameMode(mode.id);
+                  void sounds.speakAsync(mode.title, 'es-ES', true);
+                }
+                return next;
+              });
+            }}
+            className="shrink-0 w-11 h-11 rounded-2xl bg-white text-slate-800 shadow-xl border-b-4 border-slate-300 flex items-center justify-center active:scale-95"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
 
-            <div className="flex-1 min-w-0">
-              {(() => {
-                const mode = islandModes[galleryIndex] || islandModes[0];
-                if (!mode) return null;
-                const isSelected = mode.id === gameMode;
-                return (
-                  <button
-                    type="button"
-                    onClick={() => handleSelectGame(mode.id, mode.title)}
-                    className={`w-full rounded-[1.75rem] p-4 text-left border-b-8 btn-squishy relative overflow-hidden card-sheen ${
-                      isSelected
-                        ? 'ring-4 ring-yellow-300 scale-[1.02] shadow-2xl border-yellow-400'
-                        : 'border-black/20'
-                    }`}
-                    style={{
-                      background: `linear-gradient(145deg, ${mode.color} 0%, ${mode.color}cc 50%, #0f172a 140%)`,
-                    }}
-                  >
-                    <div className="absolute -right-3 -top-3 text-6xl opacity-25">{mode.icon}</div>
-                    <div className="relative z-10 flex flex-col gap-2 min-h-[120px]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-white/25 flex items-center justify-center text-3xl border border-white/30">
-                          {mode.icon}
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-black text-white/80 uppercase">{mode.badge}</div>
-                          <div className="text-lg font-black text-white leading-tight">{mode.title}</div>
-                        </div>
+          <div className="flex-1 min-w-0 h-full max-h-[200px] flex items-stretch">
+            {(() => {
+              const mode = islandModes[galleryIndex] || islandModes[0];
+              if (!mode) return null;
+              return (
+                <button
+                  type="button"
+                  onClick={() => handleSelectGame(mode.id, mode.title)}
+                  className="w-full rounded-[1.5rem] p-3 text-left border-b-8 border-black/25 shadow-2xl relative overflow-hidden active:scale-[0.98] transition-transform"
+                  style={{
+                    background: `linear-gradient(145deg, ${mode.color} 0%, ${mode.color}bb 45%, #0f172a 130%)`,
+                  }}
+                >
+                  {/* SVG decoration on card */}
+                  <svg className="absolute right-0 top-0 w-28 h-28 opacity-20" viewBox="0 0 100 100" aria-hidden>
+                    <circle cx="70" cy="30" r="40" fill="white" />
+                    <circle cx="90" cy="70" r="25" fill="white" />
+                  </svg>
+                  <div className="relative z-10 flex flex-col h-full justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-14 h-14 rounded-2xl bg-white/25 border border-white/30 flex items-center justify-center text-3xl shadow-inner">
+                        {mode.icon}
                       </div>
-                      <p className="text-xs font-bold text-white/95">{mode.tagline}</p>
-                      <div className="mt-auto text-[10px] font-black text-white/70">
-                        {galleryIndex + 1}/{islandModes.length} en {currentIsland.title}
+                      <div className="min-w-0">
+                        <div className="text-[9px] font-black uppercase text-white/80 truncate">{mode.badge}</div>
+                        <div className="text-base font-black text-white leading-tight">{mode.title}</div>
                       </div>
                     </div>
-                  </button>
-                );
-              })()}
-            </div>
+                    <p className="text-[11px] font-bold text-white/95 leading-snug line-clamp-2">{mode.tagline}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-black bg-white/20 text-white px-2 py-1 rounded-lg">{mode.mechanicBadge}</span>
+                      <span className="text-[10px] font-black text-white/70 tabular-nums">
+                        {galleryIndex + 1}/{islandModes.length}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })()}
+          </div>
 
+          <button
+            type="button"
+            aria-label="Siguiente"
+            onClick={() => {
+              sounds.sfxPop();
+              setGalleryIndex((i) => {
+                const next = (i + 1) % Math.max(1, islandModes.length);
+                const mode = islandModes[next];
+                if (mode) {
+                  setGameMode(mode.id);
+                  void sounds.speakAsync(mode.title, 'es-ES', true);
+                }
+                return next;
+              });
+            }}
+            className="shrink-0 w-11 h-11 rounded-2xl bg-white text-slate-800 shadow-xl border-b-4 border-slate-300 flex items-center justify-center active:scale-95"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </section>
+
+        {/* dots */}
+        <div className="flex justify-center gap-1.5 shrink-0">
+          {islandModes.map((m, i) => (
             <button
+              key={m.id}
               type="button"
-              aria-label="Siguiente"
               onClick={() => {
                 sounds.sfxPop();
-                setGalleryIndex((i) => {
-                  const next = (i + 1) % Math.max(1, islandModes.length);
-                  const mode = islandModes[next];
-                  if (mode) {
-                    setGameMode(mode.id);
-                    void sounds.speakAsync(mode.title, 'es-ES', true);
-                  }
-                  return next;
-                });
+                setGalleryIndex(i);
+                setGameMode(m.id);
               }}
-              className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white text-slate-800 shadow-xl border-b-4 border-slate-300 flex items-center justify-center btn-squishy"
-            >
-              <ArrowRight className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="flex justify-center gap-1.5 flex-wrap">
-            {islandModes.map((m, i) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => {
-                  sounds.sfxPop();
-                  setGalleryIndex(i);
-                  setGameMode(m.id);
-                }}
-                className={`h-2.5 rounded-full transition-all ${
-                  i === galleryIndex ? 'w-6 bg-yellow-300' : 'w-2.5 bg-white/40'
-                }`}
-              />
-            ))}
-          </div>
+              className={`h-2 rounded-full transition-all ${i === galleryIndex ? 'w-5 bg-yellow-300' : 'w-2 bg-white/35'}`}
+            />
+          ))}
         </div>
-      </div>
 
-{/* 4. Giant Start Button */}
-      <div className="w-full max-w-4xl mx-auto pt-1 shrink-0">
+        {/* PLAY — sticky bottom, always visible */}
         <button
+          type="button"
           onClick={() => {
             sounds.sfxPop();
             onStartGame();
           }}
-          className="w-full py-3.5 sm:py-4.5 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-500 to-indigo-600 text-white font-black text-xl sm:text-3xl shadow-2xl btn-squishy border-b-8 border-indigo-950 flex items-center justify-center gap-3"
+          className="shrink-0 w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-indigo-500 text-white font-black text-lg shadow-2xl border-b-8 border-indigo-900 flex items-center justify-center gap-2 active:translate-y-0.5 active:border-b-4"
         >
-          <Play className="w-6 h-6 sm:w-7 sm:h-7 fill-white" />
-          <span className="tracking-tight uppercase">
-            ¡JUGAR ({players[0]?.name})!
-          </span>
+          <Play className="w-6 h-6 fill-white" />
+          ¡JUGAR{players[0]?.name ? ` (${players[0].name})` : ''}!
         </button>
       </div>
 
-      {/* Settings Modal */}
+
       {showSettings && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-200">
           <div className="w-full max-w-sm bg-white rounded-[3rem] p-7 shadow-2xl relative border-b-8 border-slate-200">
