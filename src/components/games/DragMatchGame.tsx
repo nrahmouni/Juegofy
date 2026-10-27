@@ -121,6 +121,7 @@ export const DragMatchGame: React.FC<Props> = ({
     if (isResolving || matchedId) return;
     e.currentTarget.setPointerCapture?.(e.pointerId);
     sounds.sfxPop(1.1);
+    sounds.hapticDragStart();
     void sounds.speakAsync(item.audioText, item.audioLang, true);
     setDragged(item);
     setDragPos({ x: e.clientX, y: e.clientY });
@@ -133,6 +134,7 @@ export const DragMatchGame: React.FC<Props> = ({
 
   const onPointerUp = async (e: React.PointerEvent) => {
     if (!dragged || !target) return;
+    sounds.hapticDrop();
     const item = dragged;
     setDragged(null);
     setDragPos(null);

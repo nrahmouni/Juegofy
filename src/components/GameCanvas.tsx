@@ -30,6 +30,8 @@ import { CrazyKitchenGame } from './games/CrazyKitchenGame';
 import { FlemishWorldHub } from './games/FlemishWorldHub';
 import { DressUpGame } from './games/DressUpGame';
 import { CircuitPathGame } from './games/CircuitPathGame';
+import { SentenceTrainGame } from './games/SentenceTrainGame';
+import { BubblePopGame } from './games/BubblePopGame';
 import { X, Volume2, VolumeX, Star, BookOpen, Check } from 'lucide-react';
 
 interface Props {
@@ -553,6 +555,42 @@ export const GameCanvas: React.FC<Props> = ({
 
           {gameMode === 'dress_up' && (
             <DressUpGame
+              player={player}
+              practiceLang={practiceLang}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'sentence_train' && (
+            <SentenceTrainGame
+              player={player}
+              practiceLang={practiceLang}
+              selectedLevel={selectedLevel}
+              learnedWordIds={learnedWordIds}
+              missedWordIds={missedWordIds}
+              onMarkWordLearned={onMarkWordLearned}
+              onMarkWordMissed={onMarkWordMissed}
+              onWin={handleWin}
+              setProgressPercent={setProgressPercent}
+              starsCollected={starsCollected}
+              setStarsCollected={setStarsCollected}
+              wordsLearned={wordsLearned}
+              setWordsLearned={setWordsLearned}
+            />
+          )}
+
+          {gameMode === 'bubble_pop' && (
+            <BubblePopGame
               player={player}
               practiceLang={practiceLang}
               selectedLevel={selectedLevel}

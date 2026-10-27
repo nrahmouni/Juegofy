@@ -13,8 +13,15 @@
     width: 100vw;
     min-height: 100vh;
     min-height: 100dvh;
+    background-color: #020617;
     overscroll-behavior: none;
     touch-action: manipulation;
+  }
+
+  html, #root {
+    background-color: #020617;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 
@@ -148,13 +155,4 @@
   animation: sheen 3.5s ease-in-out infinite;
   pointer-events: none;
   border-radius: inherit;
-}
-
-/* Hide scrollbars on horizontal chip rows (mobile) */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
 }

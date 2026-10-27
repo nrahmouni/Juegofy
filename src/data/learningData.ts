@@ -1,3 +1,5 @@
+import { GameModeId } from '../types/game';
+
 export interface LearningItem {
   id: string;
   emoji: string;
@@ -14,23 +16,7 @@ export interface LearningItem {
 export const MAX_GAME_LEVEL = 8;
 
 export interface GameModeConfig {
-  id:
-    | 'lang_spanish_abc'
-    | 'lang_flemish'
-    | 'lang_spanish_words'
-    | 'lang_arabic'
-    | 'lang_french'
-    | 'safari_adventure'
-    | 'monster_feeder'
-    | 'rocket_race'
-    | 'slingshot_magic'
-    | 'crazy_catcher'
-    | 'drag_match'
-    | 'sentence_builder'
-    | 'vehicle_pilot'
-    | 'magic_puzzle'
-    | 'word_dash'
-    | 'crazy_kitchen'
+  id: GameModeId;
   title: string;
   shortTitle: string;
   badge: string;
@@ -362,32 +348,6 @@ export const GAME_MODES: GameModeConfig[] = [
     hasSpeech: true,
   },
   {
-    id: 'dress_up',
-    title: 'Vestir Amigo',
-    shortTitle: 'Vestir',
-    badge: '👗 Arrastra ropa',
-    mechanicBadge: '🧩 Cuerpo real',
-    icon: '👗',
-    description: 'Arrastra sombrero, camiseta, pantalón y zapatos al muñeco. Aprende ropa de verdad.',
-    tagline: '¡Vístelo tú mismo!',
-    color: '#ec4899',
-    bgGradient: 'from-pink-400 to-violet-600',
-    hasSpeech: true,
-  },
-  {
-    id: 'circuit_path',
-    title: 'Circuito Mágico',
-    shortTitle: 'Circuito',
-    badge: '🛤️ Sigue el camino',
-    mechanicBadge: '✏️ Trazar',
-    icon: '🛤️',
-    description: 'Mantén pulsado y sigue el circuito. En cada punto aprendes una palabra.',
-    tagline: '¡No sueltes el dedo!',
-    color: '#06b6d4',
-    bgGradient: 'from-cyan-400 to-blue-600',
-    hasSpeech: true,
-  },
-  {
     id: 'flemish_world',
     title: 'Mundo Flamenco',
     shortTitle: 'Vlaanderen',
@@ -575,49 +535,7 @@ export const SPANISH_VOCAB_ITEMS: LearningItem[] = [
   { id: 'es_fr_cuidar_planeta', emoji: '🌍', es: 'Cuidar el planeta Tierra', targetText: 'CUIDAR EL PLANETA', subText: 'Amar la naturaleza', audioText: 'Cuidar el planeta Tierra', audioLang: 'es-ES', level: 8, category: 'Oraciones', isPhrase: true },
   { id: 'es_fr_compartir_juguetes', emoji: '🧸', es: 'Compartir con amigos', targetText: 'COMPARTIR CON AMIGOS', subText: 'Jugar todos juntos', audioText: 'Compartir con amigos', audioLang: 'es-ES', level: 8, category: 'Oraciones', isPhrase: true },
   { id: 'es_fr_buenas_noches', emoji: '🌠', es: '¡Buenas noches!', targetText: '¡BUENAS NOCHES!', subText: 'Antes de ir a dormir', audioText: '¡Buenas noches!', audioLang: 'es-ES', level: 8, category: 'Expresiones', isPhrase: true },
-  { id: 'es_fr_estoy_feliz', emoji: '😄', es: '¡Estoy muy feliz!', targetText: '¡ESTOY MUY FELIZ!', subText: 'Con una gran sonrisa', audioText: '¡Estoy muy feliz!', audioLang: 'es-ES', level: 8, category: 'Expresiones', isPhrase: true },,
-
-  // === Vocabulario útil vida real ===
-  { id: 'es_mama', emoji: '👩', es: 'Mamá', targetText: 'MAMÁ', subText: 'Tu madre', audioText: 'Mamá', audioLang: 'es-ES', level: 1, category: 'Familia' },
-  { id: 'es_papa', emoji: '👨', es: 'Papá', targetText: 'PAPÁ', subText: 'Tu padre', audioText: 'Papá', audioLang: 'es-ES', level: 1, category: 'Familia' },
-  { id: 'es_hermano', emoji: '👦', es: 'Hermano', targetText: 'HERMANO', subText: 'Familia', audioText: 'Hermano', audioLang: 'es-ES', level: 2, category: 'Familia' },
-  { id: 'es_hermana', emoji: '👧', es: 'Hermana', targetText: 'HERMANA', subText: 'Familia', audioText: 'Hermana', audioLang: 'es-ES', level: 2, category: 'Familia' },
-  { id: 'es_abuela', emoji: '👵', es: 'Abuela', targetText: 'ABUELA', subText: 'Familia', audioText: 'Abuela', audioLang: 'es-ES', level: 2, category: 'Familia' },
-  { id: 'es_abuelo', emoji: '👴', es: 'Abuelo', targetText: 'ABUELO', subText: 'Familia', audioText: 'Abuelo', audioLang: 'es-ES', level: 2, category: 'Familia' },
-  { id: 'es_amigo', emoji: '🤗', es: 'Amigo', targetText: 'AMIGO', subText: 'Compañero', audioText: 'Amigo', audioLang: 'es-ES', level: 1, category: 'Familia' },
-  { id: 'es_porfavor', emoji: '🙏', es: 'Por favor', targetText: 'POR FAVOR', subText: 'Modales', audioText: 'Por favor', audioLang: 'es-ES', level: 2, category: 'Modales' },
-  { id: 'es_gracias', emoji: '😊', es: 'Gracias', targetText: 'GRACIAS', subText: 'Modales', audioText: 'Gracias', audioLang: 'es-ES', level: 1, category: 'Modales' },
-  { id: 'es_hola', emoji: '👋', es: 'Hola', targetText: 'HOLA', subText: 'Saludo', audioText: 'Hola', audioLang: 'es-ES', level: 1, category: 'Modales' },
-  { id: 'es_adios', emoji: '👋', es: 'Adiós', targetText: 'ADIÓS', subText: 'Despedida', audioText: 'Adiós', audioLang: 'es-ES', level: 1, category: 'Modales' },
-  { id: 'es_si', emoji: '✅', es: 'Sí', targetText: 'SÍ', subText: 'Afirmar', audioText: 'Sí', audioLang: 'es-ES', level: 1, category: 'Modales' },
-  { id: 'es_no', emoji: '❌', es: 'No', targetText: 'NO', subText: 'Negar', audioText: 'No', audioLang: 'es-ES', level: 1, category: 'Modales' },
-  { id: 'es_agua', emoji: '💧', es: 'Agua', targetText: 'AGUA', subText: 'Beber', audioText: 'Agua', audioLang: 'es-ES', level: 1, category: 'Comida' },
-  { id: 'es_leche', emoji: '🥛', es: 'Leche', targetText: 'LECHE', subText: 'Beber', audioText: 'Leche', audioLang: 'es-ES', level: 1, category: 'Comida' },
-  { id: 'es_pan', emoji: '🍞', es: 'Pan', targetText: 'PAN', subText: 'Comida', audioText: 'Pan', audioLang: 'es-ES', level: 1, category: 'Comida' },
-  { id: 'es_manzana', emoji: '🍎', es: 'Manzana', targetText: 'MANZANA', subText: 'Fruta', audioText: 'Manzana', audioLang: 'es-ES', level: 1, category: 'Comida' },
-  { id: 'es_platano', emoji: '🍌', es: 'Plátano', targetText: 'PLÁTANO', subText: 'Fruta', audioText: 'Plátano', audioLang: 'es-ES', level: 1, category: 'Comida' },
-  { id: 'es_queso', emoji: '🧀', es: 'Queso', targetText: 'QUESO', subText: 'Comida', audioText: 'Queso', audioLang: 'es-ES', level: 2, category: 'Comida' },
-  { id: 'es_huevo', emoji: '🥚', es: 'Huevo', targetText: 'HUEVO', subText: 'Comida', audioText: 'Huevo', audioLang: 'es-ES', level: 1, category: 'Comida' },
-  { id: 'es_arroz', emoji: '🍚', es: 'Arroz', targetText: 'ARROZ', subText: 'Comida', audioText: 'Arroz', audioLang: 'es-ES', level: 2, category: 'Comida' },
-  { id: 'es_libro', emoji: '📚', es: 'Libro', targetText: 'LIBRO', subText: 'Colegio', audioText: 'Libro', audioLang: 'es-ES', level: 1, category: 'Colegio' },
-  { id: 'es_lapiz', emoji: '✏️', es: 'Lápiz', targetText: 'LÁPIZ', subText: 'Colegio', audioText: 'Lápiz', audioLang: 'es-ES', level: 1, category: 'Colegio' },
-  { id: 'es_mochila', emoji: '🎒', es: 'Mochila', targetText: 'MOCHILA', subText: 'Colegio', audioText: 'Mochila', audioLang: 'es-ES', level: 2, category: 'Colegio' },
-  { id: 'es_profe', emoji: '👩‍🏫', es: 'Profe', targetText: 'PROFE', subText: 'Colegio', audioText: 'Profe', audioLang: 'es-ES', level: 2, category: 'Colegio' },
-  { id: 'es_colegio', emoji: '🏫', es: 'Colegio', targetText: 'COLEGIO', subText: 'Escuela', audioText: 'Colegio', audioLang: 'es-ES', level: 2, category: 'Colegio' },
-  { id: 'es_tijeras', emoji: '✂️', es: 'Tijeras', targetText: 'TIJERAS', subText: 'Material', audioText: 'Tijeras', audioLang: 'es-ES', level: 3, category: 'Colegio' },
-  { id: 'es_regla', emoji: '📏', es: 'Regla', targetText: 'REGLA', subText: 'Material', audioText: 'Regla', audioLang: 'es-ES', level: 3, category: 'Colegio' },
-  { id: 'es_pelota', emoji: '⚽', es: 'Pelota', targetText: 'PELOTA', subText: 'Deporte', audioText: 'Pelota', audioLang: 'es-ES', level: 1, category: 'Deporte' },
-  { id: 'es_correr', emoji: '🏃', es: 'Correr', targetText: 'CORRER', subText: 'Deporte', audioText: 'Correr', audioLang: 'es-ES', level: 2, category: 'Deporte' },
-  { id: 'es_saltar', emoji: '🦘', es: 'Saltar', targetText: 'SALTAR', subText: 'Deporte', audioText: 'Saltar', audioLang: 'es-ES', level: 2, category: 'Deporte' },
-  { id: 'es_nadar', emoji: '🏊', es: 'Nadar', targetText: 'NADAR', subText: 'Deporte', audioText: 'Nadar', audioLang: 'es-ES', level: 2, category: 'Deporte' },
-  { id: 'es_bici', emoji: '🚲', es: 'Bici', targetText: 'BICI', subText: 'Deporte', audioText: 'Bici', audioLang: 'es-ES', level: 2, category: 'Deporte' },
-  { id: 'es_casa', emoji: '🏠', es: 'Casa', targetText: 'CASA', subText: 'Hogar', audioText: 'Casa', audioLang: 'es-ES', level: 1, category: 'Hogar' },
-  { id: 'es_cama', emoji: '🛏️', es: 'Cama', targetText: 'CAMA', subText: 'Hogar', audioText: 'Cama', audioLang: 'es-ES', level: 1, category: 'Hogar' },
-  { id: 'es_puerta', emoji: '🚪', es: 'Puerta', targetText: 'PUERTA', subText: 'Hogar', audioText: 'Puerta', audioLang: 'es-ES', level: 2, category: 'Hogar' },
-  { id: 'es_mano', emoji: '✋', es: 'Mano', targetText: 'MANO', subText: 'Cuerpo', audioText: 'Mano', audioLang: 'es-ES', level: 1, category: 'Cuerpo' },
-  { id: 'es_pie', emoji: '🦶', es: 'Pie', targetText: 'PIE', subText: 'Cuerpo', audioText: 'Pie', audioLang: 'es-ES', level: 1, category: 'Cuerpo' },
-  { id: 'es_ojos', emoji: '👀', es: 'Ojos', targetText: 'OJOS', subText: 'Cuerpo', audioText: 'Ojos', audioLang: 'es-ES', level: 1, category: 'Cuerpo' },
-
+  { id: 'es_fr_estoy_feliz', emoji: '😄', es: '¡Estoy muy feliz!', targetText: '¡ESTOY MUY FELIZ!', subText: 'Con una gran sonrisa', audioText: '¡Estoy muy feliz!', audioLang: 'es-ES', level: 8, category: 'Expresiones', isPhrase: true },
 ];
 
 // 3. FLAMENCO (Topos Flamencos - Levels 1-5 Words, Levels 6-8 Flemish Phrases) - 60 items
@@ -689,28 +607,7 @@ export const FLEMISH_LEARNING_ITEMS: LearningItem[] = [
   { id: 'fl_fr_bird_flies', emoji: '🐦', es: 'El pájaro vuela', targetText: 'De vogel vliegt', subText: 'Pronunciación: De fójel flijt', audioText: 'De vogel vliegt', audioLang: 'nl-BE', level: 8, category: 'Oraciones', isPhrase: true },
   { id: 'fl_fr_i_read_book', emoji: '📖', es: 'Yo leo un libro', targetText: 'Ik lees een boek', subText: 'Pronunciación: Ik les en buk', audioText: 'Ik lees een boek', audioLang: 'nl-BE', level: 8, category: 'Oraciones', isPhrase: true },
   { id: 'fl_fr_we_play', emoji: '⚽', es: 'Jugamos juntos', targetText: 'Wij spelen samen', subText: 'Pronunciación: Véi spelen samen', audioText: 'Wij spelen samen', audioLang: 'nl-BE', level: 8, category: 'Oraciones', isPhrase: true },
-  { id: 'fl_fr_fish_swims', emoji: '🐟', es: 'El pez nada', targetText: 'De vis zwemt', subText: 'Pronunciación: De vis zvemt', audioText: 'De vis zwemt', audioLang: 'nl-BE', level: 8, category: 'Oraciones', isPhrase: true },,
-
-  // === Flamenco útil ===
-  { id: 'fl_mama', emoji: '👩', es: 'Mamá', targetText: 'De Mama', subText: 'Mama', audioText: 'De mama', audioLang: 'nl-BE', level: 1, category: 'Familia' },
-  { id: 'fl_papa', emoji: '👨', es: 'Papá', targetText: 'De Papa', subText: 'Papa', audioText: 'De papa', audioLang: 'nl-BE', level: 1, category: 'Familia' },
-  { id: 'fl_dankjewel', emoji: '😊', es: 'Gracias', targetText: 'Dankjewel', subText: 'Dank-ye-vel', audioText: 'Dankjewel', audioLang: 'nl-BE', level: 1, category: 'Modales' },
-  { id: 'fl_alsjeblieft', emoji: '🙏', es: 'Por favor', targetText: 'Alsjeblieft', subText: 'Als-ye-blieft', audioText: 'Alsjeblieft', audioLang: 'nl-BE', level: 2, category: 'Modales' },
-  { id: 'fl_hallo', emoji: '👋', es: 'Hola', targetText: 'Hallo', subText: 'Hallo', audioText: 'Hallo', audioLang: 'nl-BE', level: 1, category: 'Modales' },
-  { id: 'fl_dag', emoji: '👋', es: 'Adiós', targetText: 'Dag', subText: 'Dag', audioText: 'Dag', audioLang: 'nl-BE', level: 1, category: 'Modales' },
-  { id: 'fl_water', emoji: '💧', es: 'Agua', targetText: 'Het Water', subText: 'Water', audioText: 'Het water', audioLang: 'nl-BE', level: 1, category: 'Comida' },
-  { id: 'fl_boek', emoji: '📚', es: 'Libro', targetText: 'Het Boek', subText: 'Boek', audioText: 'Het boek', audioLang: 'nl-BE', level: 1, category: 'Colegio' },
-  { id: 'fl_potlood', emoji: '✏️', es: 'Lápiz', targetText: 'Het Potlood', subText: 'Pot-lood', audioText: 'Het potlood', audioLang: 'nl-BE', level: 2, category: 'Colegio' },
-  { id: 'fl_school', emoji: '🏫', es: 'Colegio', targetText: 'De School', subText: 'School', audioText: 'De school', audioLang: 'nl-BE', level: 2, category: 'Colegio' },
-  { id: 'fl_bal', emoji: '⚽', es: 'Pelota', targetText: 'De Bal', subText: 'Bal', audioText: 'De bal', audioLang: 'nl-BE', level: 1, category: 'Deporte' },
-  { id: 'fl_fiets', emoji: '🚲', es: 'Bici', targetText: 'De Fiets', subText: 'Fiets', audioText: 'De fiets', audioLang: 'nl-BE', level: 2, category: 'Deporte' },
-  { id: 'fl_huis', emoji: '🏠', es: 'Casa', targetText: 'Het Huis', subText: 'Huis', audioText: 'Het huis', audioLang: 'nl-BE', level: 1, category: 'Hogar' },
-  { id: 'fl_hand', emoji: '✋', es: 'Mano', targetText: 'De Hand', subText: 'Hand', audioText: 'De hand', audioLang: 'nl-BE', level: 1, category: 'Cuerpo' },
-  { id: 'fl_brood_extra', emoji: '🍞', es: 'Pan', targetText: 'Het Brood', subText: 'Brood', audioText: 'Het brood', audioLang: 'nl-BE', level: 1, category: 'Comida' },
-  { id: 'fl_appel_extra', emoji: '🍎', es: 'Manzana', targetText: 'De Appel', subText: 'Appel', audioText: 'De appel', audioLang: 'nl-BE', level: 1, category: 'Comida' },
-  { id: 'fl_melk_extra', emoji: '🥛', es: 'Leche', targetText: 'De Melk', subText: 'Melk', audioText: 'De melk', audioLang: 'nl-BE', level: 1, category: 'Comida' },
-  { id: 'fl_ei', emoji: '🥚', es: 'Huevo', targetText: 'Het Ei', subText: 'Ei', audioText: 'Het ei', audioLang: 'nl-BE', level: 1, category: 'Comida' },
-
+  { id: 'fl_fr_fish_swims', emoji: '🐟', es: 'El pez nada', targetText: 'De vis zwemt', subText: 'Pronunciación: De vis zvemt', audioText: 'De vis zwemt', audioLang: 'nl-BE', level: 8, category: 'Oraciones', isPhrase: true },
 ];
 
 // 4. ÁRABE (Burbujas del Genio - Levels 1-5 Words, Levels 6-8 Arabic Phrases) - 60 items

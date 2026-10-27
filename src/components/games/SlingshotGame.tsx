@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Volume2, Sparkles, HelpCircle, Crosshair } from 'lucide-react';
 import { PlayerConfig } from '../../types/game';
-import type { PracticeLang } from '../../types/game';
 import {
   LearningItem,
   selectAdaptiveItems,
@@ -16,7 +15,6 @@ import { sounds } from '../../audio/soundManager';
 
 interface Props {
   player: PlayerConfig;
-  practiceLang?: PracticeLang;
   selectedLevel: number;
   learnedWordIds: string[];
   missedWordIds?: string[];
@@ -41,7 +39,6 @@ const LANG_POOLS: Record<LangFilter, { label: string; flag: string; items: Learn
 
 export const SlingshotGame: React.FC<Props> = ({
   player,
-  practiceLang = 'es',
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],
@@ -55,10 +52,7 @@ export const SlingshotGame: React.FC<Props> = ({
   const totalRounds = Math.min(6, 3 + Math.floor(selectedLevel / 2));
   const optionsCount = Math.min(4, 3 + Math.floor(selectedLevel / 4));
 
-  const [langKey, setLangKey] = useState<LangFilter>((practiceLang as LangFilter) || 'es');
-  useEffect(() => {
-    if (practiceLang) setLangKey(practiceLang as LangFilter);
-  }, [practiceLang]);
+  const [langKey, setLangKey] = useState<LangFilter>('es');
   const [roundIdx, setRoundIdx] = useState(0);
   const [target, setTarget] = useState<LearningItem | null>(null);
   const [clouds, setClouds] = useState<LearningItem[]>([]);

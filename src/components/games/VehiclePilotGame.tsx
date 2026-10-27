@@ -226,9 +226,9 @@ export const VehiclePilotGame: React.FC<Props> = ({
           });
 
           if (caught) {
-            const hit = caught;
+            const hit: LanePod = caught;
             queueMicrotask(() => void resolveCatchRef.current(hit));
-            return moved.filter((p) => !(p.item.id === hit.item.id && p.lane === hit.lane));
+            return moved.filter((p: LanePod) => !(p.item.id === hit.item.id && p.lane === hit.lane));
           }
 
           return moved.filter((p) => p.y < 112);

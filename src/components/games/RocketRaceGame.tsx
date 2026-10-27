@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Volume2, Flame, Sparkles, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
-import { PlayerConfig, PracticeLang } from '../../types/game';
+import { PlayerConfig } from '../../types/game';
 import {
   LearningItem,
   selectAdaptiveItems,
   getPersonalizedPraise,
+  SPANISH_VOCAB_ITEMS,
 } from '../../data/learningData';
-import { getLangPool } from '../../data/languagePools';
 import { sounds } from '../../audio/soundManager';
 
 interface Props {
   player: PlayerConfig;
-  practiceLang?: PracticeLang;
   items?: LearningItem[];
   selectedLevel: number;
   learnedWordIds: string[];
@@ -38,8 +37,7 @@ const PLANET_STOPS = [
 
 export const RocketRaceGame: React.FC<Props> = ({
   player,
-  practiceLang = 'es',
-  items: itemsProp,
+  items = SPANISH_VOCAB_ITEMS,
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],
@@ -50,7 +48,6 @@ export const RocketRaceGame: React.FC<Props> = ({
   setStarsCollected,
   setWordsLearned,
 }) => {
-  const items = itemsProp || getLangPool(practiceLang);
   const totalStops = Math.min(6, 3 + Math.floor(selectedLevel / 2));
 
   const [stopIdx, setStopIdx] = useState(0);

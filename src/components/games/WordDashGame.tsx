@@ -6,15 +6,13 @@ import {
   LearningItem,
   selectAdaptiveItems,
   getPersonalizedPraise,
+  SPANISH_VOCAB_ITEMS,
 } from '../../data/learningData';
-import { PracticeLang } from '../../types/game';
-import { getUsefulPool } from '../../data/languagePools';
 import { sounds } from '../../audio/soundManager';
 import { TutorialHint } from '../common/TutorialHint';
 
 interface Props {
   player: PlayerConfig;
-  practiceLang?: PracticeLang;
   selectedLevel: number;
   learnedWordIds: string[];
   missedWordIds?: string[];
@@ -39,7 +37,6 @@ type Entity =
  */
 export const WordDashGame: React.FC<Props> = ({
   player,
-  practiceLang = 'es',
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],
@@ -89,7 +86,7 @@ export const WordDashGame: React.FC<Props> = ({
   useEffect(() => { scoreRef.current = score; }, [score]);
 
   const pickNewTarget = useCallback(() => {
-    const pool = getUsefulPool(practiceLang);
+    const pool = SPANISH_VOCAB_ITEMS;
     const available = pool.filter((i) => !usedIds.current.has(i.id));
     const picked = selectAdaptiveItems(
       available.length ? available : pool,
@@ -101,7 +98,7 @@ export const WordDashGame: React.FC<Props> = ({
     if (!picked) return null;
     usedIds.current.add(picked.id);
     return picked;
-  }, [selectedLevel, learnedWordIds, missedWordIds, practiceLang]);
+  }, [selectedLevel, learnedWordIds, missedWordIds]);
 
   useEffect(() => {
     const t = pickNewTarget();
@@ -175,7 +172,7 @@ export const WordDashGame: React.FC<Props> = ({
               };
             } else {
               // distractor
-              const pool = getUsefulPool(practiceLang).filter((i) => i.id !== t.id);
+              const pool = SPANISH_VOCAB_ITEMS.filter((i) => i.id !== t.id);
               const item = pool[Math.floor(Math.random() * pool.length)] || t;
               next = {
                 kind: 'word',

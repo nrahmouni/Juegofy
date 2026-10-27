@@ -196,6 +196,7 @@ export const MonsterFeederGame: React.FC<Props> = ({
     if (monsterState === 'eating') return;
     // Immediately speak the touched item aloud!
     sounds.sfxPop(1.1);
+    sounds.hapticDragStart();
     void sounds.speakAsync(snack.audioText, snack.audioLang, true);
 
     setDraggedSnack(snack);

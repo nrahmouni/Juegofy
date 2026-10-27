@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { Volume2, Sparkles, HelpCircle, Blocks } from 'lucide-react';
-import { PlayerConfig } from '../../types/game';
+import { PlayerConfig, PracticeLang } from '../../types/game';
 import {
   LearningItem,
   selectAdaptiveItems,
@@ -13,6 +13,7 @@ import { sounds } from '../../audio/soundManager';
 
 interface Props {
   player: PlayerConfig;
+  practiceLang?: PracticeLang;
   selectedLevel: number;
   learnedWordIds: string[];
   missedWordIds?: string[];
@@ -32,6 +33,7 @@ interface Props {
  */
 export const SentenceBuilderGame: React.FC<Props> = ({
   player,
+  practiceLang,
   selectedLevel,
   learnedWordIds,
   missedWordIds = [],

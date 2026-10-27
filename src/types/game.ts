@@ -24,8 +24,6 @@ export type CostumeId =
 
 export type AgeGroup = 'preschool' | 'kids';
 
-export type PracticeLang = 'es' | 'fl' | 'ar' | 'fr';
-
 export type GameModeId =
   | 'lang_spanish_abc'
   | 'lang_flemish'
@@ -43,6 +41,7 @@ export type GameModeId =
   | 'magic_puzzle'
   | 'word_dash'
   | 'crazy_kitchen'
+  | 'flemish_world';
 
 export type VehicleId = 'kart' | 'rocket' | 'ufo' | 'dragon' | 'broom' | 'cyber';
 

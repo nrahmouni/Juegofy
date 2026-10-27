@@ -187,6 +187,7 @@ class SoundManager {
   // --- Sound Effects for Kids ---
 
   public sfxPop(pitch: number = 1) {
+    this.hapticLight();
     this.playTone(450 * pitch, 0.08, 'sine', 0.14, 780 * pitch);
   }
 
@@ -196,6 +197,7 @@ class SoundManager {
   }
 
   public sfxChomp() {
+    this.hapticMedium();
     this.playNoise(0.09, 1600, 0.28);
     this.playTone(260, 0.1, 'triangle', 0.22, 120);
     setTimeout(() => {
@@ -210,6 +212,7 @@ class SoundManager {
   }
 
   public sfxCatch() {
+    this.hapticMedium();
     this.playTone(480, 0.09, 'sine', 0.18, 920);
     setTimeout(() => {
       this.playTone(720, 0.12, 'triangle', 0.16, 1180);
@@ -222,6 +225,7 @@ class SoundManager {
   }
 
   public sfxMagic() {
+    this.hapticSuccess();
     const sparkle = [587.33, 783.99, 987.77, 1174.66, 1567.98];
     sparkle.forEach((f, idx) => {
       setTimeout(() => {
@@ -707,8 +711,8 @@ class SoundManager {
     });
   }
 
-  /** Light haptic feedback for kids (supported on most modern mobile browsers). */
-  public haptic(pattern: number | number[] = 25) {
+  /** Haptic Feedback Suite using navigator.vibrate for mobile web */
+  public haptic(pattern: number | number[] = 18) {
     try {
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate(pattern);
@@ -716,12 +720,39 @@ class SoundManager {
     } catch {}
   }
 
-  public hapticSuccess() {
-    this.haptic([18, 40, 28]);
+  /** Subtle 12ms tap for standard button clicks & keys */
+  public hapticLight() {
+    this.haptic(12);
   }
 
+  /** Defined 24ms pulse for selecting cards, games or toggles */
+  public hapticMedium() {
+    this.haptic(24);
+  }
+
+  /** Instant tactile trigger when an item is touched / drag starts */
+  public hapticDragStart() {
+    this.haptic(16);
+  }
+
+  /** Dual vibration tick when hovering or entering a valid drop zone */
+  public hapticDragSnap() {
+    this.haptic([10, 15, 12]);
+  }
+
+  /** Solid thud when releasing and snapping an item into place */
+  public hapticDrop() {
+    this.haptic(28);
+  }
+
+  /** Joyful victory rhythm on win or completing round */
+  public hapticSuccess() {
+    this.haptic([18, 30, 22, 30, 35]);
+  }
+
+  /** Warning double buzz on error */
   public hapticError() {
-    this.haptic([40, 30, 40]);
+    this.haptic([45, 35, 45]);
   }
 }
 
