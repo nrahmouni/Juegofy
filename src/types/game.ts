@@ -1,31 +1,51 @@
 export type ThemeId = 'candy' | 'jungle' | 'space' | 'ocean' | 'volcano';
-export type StickerId = 'none' | 'crown' | 'glasses' | 'party' | 'pirate' | 'cat' | 'star' | 'wizard' | 'hero' | 'dino' | 'astronaut';
-export type CostumeId = 'none' | 'crown' | 'hero_cape' | 'pirate' | 'astronaut' | 'dino' | 'rainbow_shades';
+
+export type StickerId =
+  | 'none'
+  | 'crown'
+  | 'glasses'
+  | 'party'
+  | 'pirate'
+  | 'cat'
+  | 'star'
+  | 'wizard'
+  | 'hero'
+  | 'dino'
+  | 'astronaut';
+
+export type CostumeId =
+  | 'none'
+  | 'crown'
+  | 'hero_cape'
+  | 'pirate'
+  | 'astronaut'
+  | 'dino'
+  | 'rainbow_shades';
+
 export type AgeGroup = 'preschool' | 'kids';
+
 export type PracticeLang = 'es' | 'fl' | 'ar' | 'fr';
 
 export type GameModeId =
-  | 'monster_feeder'
-  | 'slingshot_magic'
-  | 'word_dash'
-  | 'drag_match'
-  | 'rocket_race'
-  | 'bubble_pop'
-  | 'dress_up'
-  | 'safari_photo'
-  | 'sentence_train'
-  | 'crazy_kitchen'
+  | 'lang_spanish_abc'
   | 'lang_flemish'
+  | 'lang_spanish_words'
   | 'lang_arabic'
   | 'lang_french'
-  | 'magic_puzzle'
+  | 'safari_adventure'
+  | 'monster_feeder'
+  | 'rocket_race'
+  | 'slingshot_magic'
+  | 'crazy_catcher'
+  | 'drag_match'
+  | 'sentence_builder'
   | 'vehicle_pilot'
-  | 'circuit_path'
-  | 'flemish_world'
-  | 'lang_spanish_abc'
-  | 'lang_spanish_words';
+  | 'magic_puzzle'
+  | 'word_dash'
+  | 'crazy_kitchen'
 
 export type VehicleId = 'kart' | 'rocket' | 'ufo' | 'dragon' | 'broom' | 'cyber';
+
 export type TrailId = 'sparkles' | 'rainbow' | 'bubbles' | 'fire' | 'hearts' | 'lightning';
 
 export interface PlayerConfig {
@@ -52,8 +72,21 @@ export interface ThemeConfig {
   icon: string;
   subtitle?: string;
   bgGradient?: string;
+  bgColor1?: string;
+  bgColor2?: string;
+  pathColor?: string;
+  pathBorderColor?: string;
+  roadColor?: string;
+  roadBorder?: string;
+  roadDash?: string;
   accentColor: string;
   decorations: string[];
+  obstacleName?: string;
+  obstacleEmoji?: string;
+  movingObstacleEmoji?: string;
+  movingObstacleName?: string;
+  bombStyle?: string;
+  musicScale?: number[];
 }
 
 export interface PlayerResult {
