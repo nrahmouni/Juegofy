@@ -12,6 +12,7 @@ import {
 import { PlayerConfig, GameModeId, PracticeLang, AgeGroup } from '../types/game';
 import { CORE_GAMES, MORE_GAMES, getGameById } from '../data/gameModes';
 import { GAME_ICONS } from './common/GameIcons';
+import { GarageShopModal } from './GarageShopModal';
 import { sounds } from '../audio/soundManager';
 
 // Fallbacks por si faltan datos externos
@@ -68,6 +69,8 @@ export const PlayerSetup: React.FC<Props> = ({
   onToggleMute,
 }) => {
   const [showMoreGames, setShowMoreGames] = useState(false);
+  const [showShop, setShowShop] = useState(false);
+  const [activeShopPlayerId, setActiveShopPlayerId] = useState<number | null>(null);
 
   const handleAddPlayer = () => {
     if (players.length >= 4) return;
@@ -128,9 +131,17 @@ export const PlayerSetup: React.FC<Props> = ({
             </button>
             <button
               type="button"
-              className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-amber-300"
+              onClick={() => {
+                sounds.sfxPop?.();
+                setActiveShopPlayerId(players[0]?.id ?? 0);
+                setShowShop(true);
+              }}
+              aria-label={`Abrir tienda mágica. ${players[0]?.coins ?? 100} monedas`}
+              title="Tienda mágica"
+              className="h-9 px-2 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center gap-1 text-amber-300"
             >
               <ShoppingBag className="w-4 h-4" />
+              <span className="text-[10px] font-black tabular-nums">{players[0]?.coins ?? 100}</span>
             </button>
           </div>
         </header>
@@ -327,6 +338,16 @@ export const PlayerSetup: React.FC<Props> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {showShop && (
+        <GarageShopModal
+          players={players}
+          setPlayers={setPlayers}
+          activePlayerId={activeShopPlayerId ?? players[0]?.id ?? 0}
+          setActivePlayerId={setActiveShopPlayerId}
+          onClose={() => setShowShop(false)}
+        />
       )}
     </div>
   );

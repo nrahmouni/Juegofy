@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { Volume2, HelpCircle } from 'lucide-react';
 import { PlayerConfig } from '../../types/game';
+import { VEHICLES, COSTUMES } from '../../data/garage';
 import {
   LearningItem,
   selectAdaptiveItems,
@@ -270,7 +271,10 @@ export const VehiclePilotGame: React.FC<Props> = ({
   }
 
   const showHint = mistakes >= 2;
-  const vehicleEmoji = vehicleKind === 'car' ? '🏎️' : '✈️';
+  const vehicleEmoji = vehicleKind === 'car'
+    ? VEHICLES.find((vehicle) => vehicle.id === player.selectedVehicle)?.icon ?? '🏎️'
+    : '✈️';
+  const costumeEmoji = COSTUMES.find((costume) => costume.id === player.selectedCostume)?.icon;
   const lanePct = [16.66, 50, 83.33];
 
   return (
@@ -395,8 +399,13 @@ export const VehiclePilotGame: React.FC<Props> = ({
           className="absolute bottom-[3%] z-20 transition-all duration-150 ease-out -translate-x-1/2"
           style={{ left: `${lanePct[lane]}%` }}
         >
-          <div className={`text-6xl sm:text-7xl drop-shadow-2xl leading-none ${flashLane === 'good' ? 'scale-125' : ''}`}>
+          <div className={`relative text-6xl sm:text-7xl drop-shadow-2xl leading-none ${flashLane === 'good' ? 'scale-125' : ''}`}>
             {vehicleEmoji}
+            {costumeEmoji && costumeEmoji !== '✨' && (
+              <span className="absolute -top-3 -right-4 text-3xl drop-shadow-lg" aria-label="Disfraz equipado">
+                {costumeEmoji}
+              </span>
+            )}
           </div>
         </div>
 

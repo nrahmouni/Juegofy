@@ -121,6 +121,17 @@ export const CORE_GAMES: GameModeConfig[] = [
 
 export const MORE_GAMES: GameModeConfig[] = [
   {
+    id: 'vehicle_pilot',
+    title: 'Piloto Turbo',
+    shortTitle: 'Piloto Turbo',
+    icon: '🏁',
+    color: '#0ea5e9',
+    description: 'Pilota por tres carriles y atrapa la palabra correcta',
+    mechanic: 'Desliza y atrapa',
+    isNew: true,
+    isCore: false,
+  },
+  {
     id: 'lang_flemish',
     title: 'Topos Flamencos',
     shortTitle: 'Flamenco',
